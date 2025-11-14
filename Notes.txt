@@ -544,3 +544,326 @@ npx expo doctor                        # Check for issues
 ---
 
 **You're now ready to start development! 🚀**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Groci-SmartApp - Navigation & Architecture
+
+## App Navigation Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     SPLASH SCREEN                            │
+│                   (Auto-navigate based on auth)              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ├─── Not Authenticated
+                              │
+                    ┌─────────▼──────────┐
+                    │   AUTH STACK        │
+                    │  (No Tabs)          │
+                    ├─────────────────────┤
+                    │  • Login            │
+                    │  • Register         │
+                    │  • Forgot Password  │
+                    └─────────────────────┘
+                              │
+                              ├─── Authenticated
+                              │
+                    ┌─────────▼──────────────────────────────────┐
+                    │         MAIN APP (Tab Navigator)            │
+                    └─────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┬─────────────────────┐
+        │                     │                     │                     │
+   ┌────▼────┐          ┌────▼────┐          ┌────▼────┐          ┌────▼────┐
+   │  HOME   │          │RECEIPTS │          │  LISTS  │          │ PROFILE │
+   │  TAB    │          │   TAB   │          │   TAB   │          │   TAB   │
+   └─────────┘          └─────────┘          └─────────┘          └─────────┘
+        │                     │                     │                     │
+        │                     │                     │                     │
+   ┌────▼────────┐      ┌────▼────────┐      ┌────▼────────┐      ┌────▼────────┐
+   │ Dashboard   │      │ Receipts    │      │ Shopping    │      │ Profile     │
+   │ - Stats     │      │ List        │      │ Lists       │      │ Info        │
+   │ - Recent    │      │             │      │             │      │             │
+   │ - Quick     │      ├─────────────┤      ├─────────────┤      ├─────────────┤
+   │   Actions   │      │ Receipt     │      │ List        │      │ Settings    │
+   │             │      │ Detail      │      │ Detail      │      │             │
+   │             │      │ - Items     │      │ - Items     │      ├─────────────┤
+   │             │      │ - Image     │      │ - Check Off │      │ Preferred   │
+   │             │      │ - Edit      │      │ - Add Items │      │ Stores      │
+   │             │      │             │      │             │      │             │
+   │             │      ├─────────────┤      ├─────────────┤      ├─────────────┤
+   │             │      │ Upload      │      │ Create      │      │ Change      │
+   │             │      │ Receipt     │      │ List        │      │ Password    │
+   │             │      │ (Camera)    │      │             │      │             │
+   │             │      │             │      ├─────────────┤      ├─────────────┤
+   │             │      ├─────────────┤      │ Price       │      │ Logout      │
+   │             │      │ Edit        │      │ Comparison  │      │             │
+   │             │      │ Receipt     │      │             │      └─────────────┘
+   │             │      │             │      └─────────────┘
+   └─────────────┘      └─────────────┘
+```
+
+## Screen Breakdown
+
+### 1. **Auth Stack** (No Tabs)
+- **Login** - Email/username and password
+- **Register** - Create new account
+- **Forgot Password** - (Optional for future)
+
+### 2. **Home Tab**
+- **Dashboard** - Main screen with:
+  - Monthly spending overview
+  - Recent receipts (3-5)
+  - Quick actions (Scan Receipt, New List)
+  - Spending trends chart
+  - Top stores
+
+### 3. **Receipts Tab**
+- **Receipts List** - All receipts with:
+  - Filter by date, store, status
+  - Search functionality
+  - Pull to refresh
+- **Receipt Detail** - View receipt:
+  - Image preview
+  - Items list
+  - Total, tax, store info
+  - Edit button
+- **Upload Receipt** - Camera/gallery picker
+- **Edit Receipt** - Update receipt info and items
+
+### 4. **Shopping Lists Tab**
+- **Lists Overview** - All shopping lists:
+  - Active, completed, archived
+  - Progress indicators
+  - Create new list button
+- **List Detail** - Individual list:
+  - Items with check-off
+  - Add/remove items
+  - Price estimates
+  - Total calculation
+- **Create/Edit List** - Form to manage list
+- **Price Comparison** - Compare prices across stores
+
+### 5. **Profile Tab**
+- **Profile Info** - User details
+- **Settings** - App preferences
+- **Preferred Stores** - Manage favorite stores
+- **Change Password**
+- **Logout**
+
+## Navigation Patterns
+
+### Primary Navigation
+- **Bottom Tab Navigator** (4 tabs)
+  - Home, Receipts, Lists, Profile
+
+### Secondary Navigation
+- **Stack Navigator** within each tab for sub-screens
+- **Modal Screens** for:
+  - Camera/Image Picker
+  - Forms (Create/Edit)
+  - Confirmation dialogs
+
+### Gestures
+- **Swipe back** - Native back gesture
+- **Pull to refresh** - Refresh lists
+- **Swipe to delete** - Delete list items
+
+# Groci-SmartApp Mobile Folder Structure
+
+```
+mobile/
+├── app/                                # Expo Router app directory
+│   ├── (auth)/                        # Auth group (no tabs)
+│   │   ├── _layout.tsx               # Auth stack layout
+│   │   ├── login.tsx                 # Login screen
+│   │   ├── register.tsx              # Register screen
+│   │   └── forgot-password.tsx       # Forgot password screen
+│   │
+│   ├── (tabs)/                        # Main app with tabs
+│   │   ├── _layout.tsx               # Tab navigator layout
+│   │   │
+│   │   ├── home/                      # Home tab
+│   │   │   ├── _layout.tsx           # Home stack layout
+│   │   │   └── index.tsx             # Dashboard screen
+│   │   │
+│   │   ├── receipts/                  # Receipts tab
+│   │   │   ├── _layout.tsx           # Receipts stack layout
+│   │   │   ├── index.tsx             # Receipts list
+│   │   │   ├── [id].tsx              # Receipt detail (dynamic)
+│   │   │   ├── upload.tsx            # Upload receipt
+│   │   │   └── edit/[id].tsx         # Edit receipt
+│   │   │
+│   │   ├── lists/                     # Shopping lists tab
+│   │   │   ├── _layout.tsx           # Lists stack layout
+│   │   │   ├── index.tsx             # Lists overview
+│   │   │   ├── [id].tsx              # List detail (dynamic)
+│   │   │   ├── create.tsx            # Create list
+│   │   │   ├── edit/[id].tsx         # Edit list
+│   │   │   └── compare/[id].tsx      # Price comparison
+│   │   │
+│   │   └── profile/                   # Profile tab
+│   │       ├── _layout.tsx           # Profile stack layout
+│   │       ├── index.tsx             # Profile screen
+│   │       ├── settings.tsx          # Settings
+│   │       ├── stores.tsx            # Preferred stores
+│   │       └── change-password.tsx   # Change password
+│   │
+│   ├── _layout.tsx                    # Root layout
+│   ├── index.tsx                      # Entry point (redirect)
+│   └── +not-found.tsx                # 404 screen
+│
+├── components/                        # Reusable components
+│   ├── ui/                           # UI components
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── Input.tsx
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Avatar.tsx
+│   │   └── Badge.tsx
+│   │
+│   ├── receipts/                     # Receipt-specific components
+│   │   ├── ReceiptCard.tsx
+│   │   ├── ReceiptItem.tsx
+│   │   ├── ReceiptImagePicker.tsx
+│   │   └── ReceiptFilters.tsx
+│   │
+│   ├── lists/                        # Shopping list components
+│   │   ├── ShoppingListCard.tsx
+│   │   ├── ListItem.tsx
+│   │   ├── ListProgress.tsx
+│   │   └── PriceComparisonCard.tsx
+│   │
+│   ├── products/                     # Product components
+│   │   ├── ProductCard.tsx
+│   │   ├── ProductSearch.tsx
+│   │   └── StoreSelector.tsx
+│   │
+│   └── common/                       # Common components
+│       ├── Header.tsx
+│       ├── EmptyState.tsx
+│       ├── ErrorMessage.tsx
+│       └── ConfirmDialog.tsx
+│
+├── services/                         # API services
+│   ├── api.ts                       # Base API configuration
+│   ├── authService.ts               # Authentication APIs
+│   ├── receiptService.ts            # Receipt APIs
+│   ├── productService.ts            # Product APIs
+│   ├── shoppingListService.ts       # Shopping list APIs
+│   └── storageService.ts            # Local storage utilities
+│
+├── context/                          # React Context providers
+│   ├── AuthContext.tsx              # Auth state management
+│   ├── ThemeContext.tsx             # Theme management
+│   └── ToastContext.tsx             # Toast notifications
+│
+├── hooks/                            # Custom React hooks
+│   ├── useAuth.ts                   # Auth hook
+│   ├── useReceipts.ts               # Receipts data hook
+│   ├── useShoppingLists.ts          # Lists data hook
+│   ├── useProducts.ts               # Products data hook
+│   └── useDebounce.ts               # Debounce utility hook
+│
+├── utils/                            # Utility functions
+│   ├── formatters.ts                # Date, currency formatters
+│   ├── validators.ts                # Form validators
+│   ├── constants.ts                 # App constants
+│   └── helpers.ts                   # Helper functions
+│
+├── types/                            # TypeScript types
+│   ├── auth.ts                      # Auth types
+│   ├── receipt.ts                   # Receipt types
+│   ├── product.ts                   # Product types
+│   ├── shoppingList.ts              # Shopping list types
+│   └── api.ts                       # API response types
+│
+├── assets/                           # Static assets
+│   ├── images/                      # Images
+│   │   ├── logo.png
+│   │   ├── empty-receipt.png
+│   │   └── empty-list.png
+│   ├── icons/                       # Custom icons (if any)
+│   └── fonts/                       # Custom fonts (if any)
+│
+├── constants/                        # App-wide constants
+│   └── Colors.ts                    # Color definitions
+│
+├── .env                             # Environment variables
+├── .env.example                     # Example env file
+├── app.json                         # Expo configuration
+├── package.json                     # Dependencies
+├── tsconfig.json                    # TypeScript config
+├── tailwind.config.js               # Tailwind config
+└── babel.config.js                  # Babel config
+```
+
+## Key Features of This Structure
+
+### 1. **Expo Router File-based Routing**
+- Uses folder structure for navigation
+- `(auth)` and `(tabs)` are route groups
+- Dynamic routes with `[id].tsx`
+- Nested navigation with `_layout.tsx`
+
+### 2. **Component Organization**
+- **ui/** - Generic reusable UI components
+- **feature folders** - Domain-specific components
+- **common/** - Shared components across features
+
+### 3. **Services Layer**
+- Centralized API calls
+- Easy to mock for testing
+- Consistent error handling
+
+### 4. **Context & Hooks**
+- Global state management with Context API
+- Custom hooks for data fetching
+- Reusable logic extraction
+
+### 5. **Type Safety**
+- TypeScript types in dedicated folder
+- API response types
+- Component prop types
+
+### 6. **Utilities**
+- Formatters for dates, currency
+- Validators for forms
+- Helper functions
+
+## File Naming Conventions
+
+- **Components**: PascalCase (`ReceiptCard.tsx`)
+- **Services**: camelCase (`authService.ts`)
+- **Hooks**: camelCase with `use` prefix (`useAuth.ts`)
+- **Types**: camelCase (`receipt.ts`)
+- **Utils**: camelCase (`formatters.ts`)
+- **Screens**: kebab-case for routes (`change-password.tsx`)
