@@ -34,6 +34,19 @@ export default function ReceiptsLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="edit/[id]"
+        options={{
+          title: 'Edit Receipt',
+        }}
+      />
+      <Stack.Screen
+        name="add-item/[id]"
+        options={{
+          title: 'Add Item',
+          presentation: 'modal',
+        }}
+      />
     </Stack>
   );
 }
