@@ -353,7 +353,7 @@ venv\Scripts\activate  # Windows
 source venv/bin/activate  # Mac/Linux
 
 python manage.py runserver
-```
+```s
 
 Backend will run on: `http://127.0.0.1:8000`
 
