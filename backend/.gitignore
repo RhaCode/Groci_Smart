@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.pyo
+*.pyc
+*.so
+
+# Django
+*.log
+*.pot
+*.pyc
+*.mo
+*.db
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+media/
+staticfiles/
+static/
+.env
+.env.*
+*.env
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.vscode/
+.idea/
+
+# Migrations (optional — normally keep these in Git)
+# Uncomment ONLY if you intentionally want to ignore migrations
+# */migrations/*
+# !*/migrations/__init__.py
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Coverage & testing
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+
+# Local settings
+local_settings.py
+
+# Node (if using Django + frontend tools)
+node_modules/
