@@ -25,7 +25,7 @@ from .serializers import (
     ProcessReceiptSerializer,
     ReceiptStatsSerializer
 )
-from .services.ocr_service import AzureOCRService
+# from .services.ocr_service import AzureOCRService
 from .services.receipt_parser import ReceiptParser
 from products.models import Store, Product, PriceHistory
 
@@ -82,12 +82,12 @@ def upload_receipt(request):
         
         # Trigger OCR processing asynchronously (in a real app, use Celery)
         # For now, we'll process it immediately
-        try:
-            process_receipt_ocr(receipt)
-        except Exception as e:
-            receipt.status = 'failed'
-            receipt.processing_error = str(e)
-            receipt.save()
+        # try:
+        #     process_receipt_ocr(receipt)
+        # except Exception as e:
+        #     receipt.status = 'failed'
+        #     receipt.processing_error = str(e)
+        #     receipt.save()
         
         return Response(
             ReceiptSerializer(receipt, context={'request': request}).data,
@@ -134,7 +134,7 @@ def reprocess_receipt(request, receipt_id):
         receipt.processing_error = ''
         receipt.save()
         
-        process_receipt_ocr(receipt)
+        # process_receipt_ocr(receipt)
         
         return Response(
             ReceiptSerializer(receipt, context={'request': request}).data,
@@ -332,62 +332,62 @@ def get_spending_by_month(request):
 
 # ===================== HELPER FUNCTIONS =====================
 
-def process_receipt_ocr(receipt):
-    """Process receipt image with OCR and extract data"""
-    receipt.status = 'processing'
-    receipt.save()
+# def process_receipt_ocr(receipt):
+#     """Process receipt image with OCR and extract data"""
+#     receipt.status = 'processing'
+#     receipt.save()
     
-    try:
-        # Initialize OCR service
-        ocr_service = AzureOCRService()
+#     try:
+#         # Initialize OCR service
+#         ocr_service = AzureOCRService()
         
-        # Extract text from image
-        ocr_result = ocr_service.extract_text_from_image(receipt.receipt_image.path)
+#         # Extract text from image
+#         ocr_result = ocr_service.extract_text_from_image(receipt.receipt_image.path)
         
-        if not ocr_result['success']:
-            raise Exception(ocr_result['error'])
+#         if not ocr_result['success']:
+#             raise Exception(ocr_result['error'])
         
-        # Save OCR text
-        receipt.ocr_text = ocr_result['text']
-        receipt.save()
+#         # Save OCR text
+#         receipt.ocr_text = ocr_result['text']
+#         receipt.save()
         
-        # Parse receipt data
-        parser = ReceiptParser()
-        parsed_data = parser.parse_receipt_text(ocr_result['text'])
+#         # Parse receipt data
+#         parser = ReceiptParser()
+#         parsed_data = parser.parse_receipt_text(ocr_result['text'])
         
-        # Update receipt with parsed data
-        if parsed_data.get('store_name'):
-            receipt.store_name = parsed_data['store_name']
-        if parsed_data.get('purchase_date'):
-            receipt.purchase_date = parsed_data['purchase_date']
-        if parsed_data.get('total_amount'):
-            receipt.total_amount = parsed_data['total_amount']
-        if parsed_data.get('tax_amount'):
-            receipt.tax_amount = parsed_data['tax_amount']
+#         # Update receipt with parsed data
+#         if parsed_data.get('store_name'):
+#             receipt.store_name = parsed_data['store_name']
+#         if parsed_data.get('purchase_date'):
+#             receipt.purchase_date = parsed_data['purchase_date']
+#         if parsed_data.get('total_amount'):
+#             receipt.total_amount = parsed_data['total_amount']
+#         if parsed_data.get('tax_amount'):
+#             receipt.tax_amount = parsed_data['tax_amount']
         
-        # Create receipt items
-        if parsed_data.get('items'):
-            for item_data in parsed_data['items']:
-                ReceiptItem.objects.create(
-                    receipt=receipt,
-                    product_name=item_data['name'],
-                    normalized_name=item_data.get('normalized_name', item_data['name'].lower()),
-                    quantity=item_data.get('quantity', 1.0),
-                    unit_price=item_data['unit_price'],
-                    total_price=item_data['total_price']
-                )
+#         # Create receipt items
+#         if parsed_data.get('items'):
+#             for item_data in parsed_data['items']:
+#                 ReceiptItem.objects.create(
+#                     receipt=receipt,
+#                     product_name=item_data['name'],
+#                     normalized_name=item_data.get('normalized_name', item_data['name'].lower()),
+#                     quantity=item_data.get('quantity', 1.0),
+#                     unit_price=item_data['unit_price'],
+#                     total_price=item_data['total_price']
+#                 )
         
-        # Update price history
-        update_price_history(receipt)
+#         # Update price history
+#         update_price_history(receipt)
         
-        receipt.status = 'completed'
-        receipt.save()
+#         receipt.status = 'completed'
+#         receipt.save()
         
-    except Exception as e:
-        receipt.status = 'failed'
-        receipt.processing_error = str(e)
-        receipt.save()
-        raise
+#     except Exception as e:
+#         receipt.status = 'failed'
+#         receipt.processing_error = str(e)
+#         receipt.save()
+#         raise
 
 
 def update_price_history(receipt):

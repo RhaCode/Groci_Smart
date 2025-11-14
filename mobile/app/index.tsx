@@ -1,9 +1,8 @@
-import { Text, View } from "react-native";
+// mobile/app/index.tsx
+import { Redirect } from 'expo-router';
 
 export default function Index() {
-  return (
-    <View className="flex-1 justify-center items-center">
-      <Text>Welcome!!!</Text>
-    </View>
-  );
+  // This will be handled by the root layout
+  // Just redirect to auth for now
+  return <Redirect href="/(auth)/login" />;
 }
