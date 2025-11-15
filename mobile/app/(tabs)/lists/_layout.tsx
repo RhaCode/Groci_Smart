@@ -34,6 +34,25 @@ export default function ListsLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="edit/[id]"
+        options={{
+          title: 'Edit List',
+        }}
+      />
+      <Stack.Screen
+        name="add-item/[id]"
+        options={{
+          title: 'Add Item',
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="compare/[id]"
+        options={{
+          title: 'Price Comparison',
+        }}
+      />
     </Stack>
   );
 }
