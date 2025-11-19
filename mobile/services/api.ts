@@ -1,9 +1,37 @@
 // mobile/services/api.ts
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 // API Configuration
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = 'http://10.40.14.34:8000/api';
+
+// Helper function to get token (platform-aware)
+const getAuthToken = async (): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem('authToken');
+    } else {
+      return await SecureStore.getItemAsync('authToken');
+    }
+  } catch (error) {
+    console.error('Error retrieving auth token:', error);
+    return null;
+  }
+};
+
+// Helper function to delete token (platform-aware)
+const deleteAuthToken = async (): Promise<void> => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem('authToken');
+    } else {
+      await SecureStore.deleteItemAsync('authToken');
+    }
+  } catch (error) {
+    console.error('Error deleting auth token:', error);
+  }
+};
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -18,7 +46,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const token = await SecureStore.getItemAsync('authToken');
+      const token = await getAuthToken();
       if (token && config.headers) {
         config.headers.Authorization = `Token ${token}`;
       }
@@ -45,7 +73,7 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // Unauthorized - clear token and redirect to login
-          await SecureStore.deleteItemAsync('authToken');
+          await deleteAuthToken();
           // You can emit an event here to trigger navigation
           console.log('Unauthorized - Token cleared');
           break;

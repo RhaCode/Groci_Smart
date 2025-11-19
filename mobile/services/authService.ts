@@ -1,6 +1,7 @@
 // mobile/services/authService.ts
 import api, { handleApiError, ApiError } from './api';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 // Types
 export interface User {
@@ -56,7 +57,12 @@ class AuthService {
   // Store token securely
   private async storeToken(token: string): Promise<void> {
     try {
-      await SecureStore.setItemAsync('authToken', token);
+      if (Platform.OS === 'web') {
+        // Fallback to localStorage for web
+        localStorage.setItem('authToken', token);
+      } else {
+        await SecureStore.setItemAsync('authToken', token);
+      }
     } catch (error) {
       console.error('Error storing token:', error);
       throw error;
@@ -66,7 +72,11 @@ class AuthService {
   // Get stored token
   async getToken(): Promise<string | null> {
     try {
-      return await SecureStore.getItemAsync('authToken');
+      if (Platform.OS === 'web') {
+        return localStorage.getItem('authToken');
+      } else {
+        return await SecureStore.getItemAsync('authToken');
+      }
     } catch (error) {
       console.error('Error retrieving token:', error);
       return null;
@@ -76,7 +86,11 @@ class AuthService {
   // Remove token
   async removeToken(): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync('authToken');
+      if (Platform.OS === 'web') {
+        localStorage.removeItem('authToken');
+      } else {
+        await SecureStore.deleteItemAsync('authToken');
+      }
     } catch (error) {
       console.error('Error removing token:', error);
     }
