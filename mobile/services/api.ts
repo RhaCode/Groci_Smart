@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 // API Configuration
-const API_BASE_URL = 'http://10.40.14.34:8000/api';
+const API_BASE_URL = 'http://192.168.0.99:8000/api';
 
 // Helper function to get token (platform-aware)
 const getAuthToken = async (): Promise<string | null> => {

@@ -24,7 +24,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 p-4">
         {/* Welcome Header */}
         <View className="mb-6">

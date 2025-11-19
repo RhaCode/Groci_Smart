@@ -52,7 +52,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 p-4">
         {/* Profile Header */}
         <Card className="items-center mb-4">

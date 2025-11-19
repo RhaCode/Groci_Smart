@@ -7,12 +7,13 @@ export default function ListsLayout() {
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: '#1f2937', // surface color (dark)
         },
-        headerTintColor: '#111827',
+        headerTintColor: '#f9fafb', // text-primary color (light)
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Screen
@@ -32,6 +33,9 @@ export default function ListsLayout() {
         options={{
           title: 'Create List',
           presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#1f2937',
+          },
         }}
       />
       <Stack.Screen
@@ -45,6 +49,9 @@ export default function ListsLayout() {
         options={{
           title: 'Add Item',
           presentation: 'modal',
+          headerStyle: {
+            backgroundColor: '#1f2937',
+          },
         }}
       />
       <Stack.Screen

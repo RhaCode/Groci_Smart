@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import shoppingListService, { ShoppingListSummary } from '../../../services/shoppingListService';
@@ -137,13 +136,13 @@ export default function ShoppingListsScreen() {
 
     return (
       <View className="flex-1 justify-center items-center p-6">
-        <View className="bg-secondary-100 rounded-full p-6 mb-4">
-          <Ionicons name="list-outline" size={64} color="#c026d3" />
+        <View className="bg-accent-light/20 rounded-full p-6 mb-4">
+          <Ionicons name="list-outline" size={64} color="#e879f9" />
         </View>
-        <Text className="text-xl font-bold text-gray-800 mb-2">
+        <Text className="text-xl font-bold text-text-primary mb-2">
           No {statusFilter} Lists
         </Text>
-        <Text className="text-gray-600 text-center mb-6">
+        <Text className="text-text-secondary text-center mb-6">
           {statusFilter === 'active'
             ? 'Create your first shopping list to get started'
             : `You don't have any ${statusFilter} lists`}
@@ -164,7 +163,7 @@ export default function ShoppingListsScreen() {
     if (!hasMore) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#c026d3" />
+        <ActivityIndicator size="small" color="#e879f9" />
       </View>
     );
   };
@@ -178,72 +177,79 @@ export default function ShoppingListsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <View className="flex-1">
-        {/* Header */}
-        <View className="px-4 py-3 bg-white border-b border-gray-200">
-          <View className="flex-row justify-between items-center mb-3">
-            <View>
-              <Text className="text-2xl font-bold text-gray-800">Shopping Lists</Text>
-              <Text className="text-gray-600 text-sm mt-1">
-                {lists.length} {lists.length === 1 ? 'list' : 'lists'}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={handleCreateList}
-              className="bg-secondary-600 rounded-full p-3"
-            >
-              <Ionicons name="add" size={24} color="white" />
-            </TouchableOpacity>
+    <View className="flex-1 bg-background">
+      {/* Status Filter Tabs - Keep this as it's functional UI, not navigation */}
+      <View className="px-4 py-3 bg-surface border-b border-border">
+        <View className="flex-row justify-between items-center mb-3">
+          {/* List count and stats */}
+          <View>
+            <Text className="text-text-secondary text-sm">
+              {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+            </Text>
           </View>
-
-          {/* Status Tabs */}
-          <View className="flex-row gap-2">
-            {statusTabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.value}
-                onPress={() => setStatusFilter(tab.value)}
-                className={`px-4 py-2 rounded-full ${
-                  statusFilter === tab.value
-                    ? 'bg-secondary-600'
-                    : 'bg-gray-100'
-                }`}
-              >
-                <Text
-                  className={`font-medium ${
-                    statusFilter === tab.value ? 'text-white' : 'text-gray-700'
-                  }`}
-                >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          
+          {/* Create List Button */}
+          <TouchableOpacity
+            onPress={handleCreateList}
+            className="bg-accent rounded-full p-3"
+          >
+            <Ionicons name="add" size={24} color="#f9fafb" />
+          </TouchableOpacity>
         </View>
 
-        {/* Lists */}
-        <FlatList
-          data={lists}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <ShoppingListCard
-              list={item}
-              onPress={() => handleListPress(item.id)}
-              onDelete={() => handleDeleteList(item.id, item.name)}
-              onDuplicate={() => handleDuplicateList(item.id)}
-            />
-          )}
-          contentContainerStyle={{ padding: 16 }}
-          ItemSeparatorComponent={() => <View className="h-3" />}
-          ListEmptyComponent={renderEmptyState}
-          ListFooterComponent={renderFooter}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-          }
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-        />
+        {/* Status Tabs */}
+        <View className="flex-row gap-2">
+          {statusTabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.value}
+              onPress={() => setStatusFilter(tab.value)}
+              className={`px-4 py-2 rounded-full ${
+                statusFilter === tab.value
+                  ? 'bg-accent'
+                  : 'bg-surface-light'
+              }`}
+            >
+              <Text
+                className={`font-medium ${
+                  statusFilter === tab.value 
+                    ? 'text-text-primary' 
+                    : 'text-text-secondary'
+                }`}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </SafeAreaView>
+
+      {/* Lists */}
+      <FlatList
+        data={lists}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <ShoppingListCard
+            list={item}
+            onPress={() => handleListPress(item.id)}
+            onDelete={() => handleDeleteList(item.id, item.name)}
+            onDuplicate={() => handleDuplicateList(item.id)}
+          />
+        )}
+        contentContainerStyle={{ padding: 16 }}
+        ItemSeparatorComponent={() => <View className="h-3" />}
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
+        refreshControl={
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={onRefresh}
+            colors={['#e879f9']}
+            tintColor="#e879f9"
+          />
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+      />
+    </View>
   );
 }

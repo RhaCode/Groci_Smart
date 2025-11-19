@@ -198,7 +198,7 @@ export default function ReceiptsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1">
       <View className="flex-1">
         {/* Header with Search and Filters */}
         <View className="px-4 py-3 bg-white border-b border-gray-200">

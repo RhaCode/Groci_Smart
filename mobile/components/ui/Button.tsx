@@ -23,15 +23,15 @@ export const Button: React.FC<ButtonProps> = ({
   const getVariantClasses = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-primary-600 active:bg-primary-700';
+        return 'bg-primary border border-primary active:bg-primary-dark';
       case 'secondary':
-        return 'bg-secondary-600 active:bg-secondary-700';
+        return 'bg-accent border border-accent active:bg-accent-dark';
       case 'outline':
-        return 'bg-transparent border-2 border-primary-600 active:bg-primary-50';
+        return 'bg-transparent border-2 border-border-light active:bg-surface-light';
       case 'danger':
-        return 'bg-error-600 active:bg-error-700';
+        return 'bg-error border border-error active:bg-error/80';
       default:
-        return 'bg-primary-600 active:bg-primary-700';
+        return 'bg-primary border border-primary active:bg-primary-dark';
     }
   };
 
@@ -50,7 +50,13 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getTextClasses = () => {
     const baseClasses = 'font-semibold text-center';
-    const colorClasses = variant === 'outline' ? 'text-primary-600' : 'text-white';
+    
+    const colorClasses = {
+      primary: 'text-text-primary',
+      secondary: 'text-text-primary',
+      outline: 'text-text-primary',
+      danger: 'text-text-primary',
+    }[variant];
     
     const sizeClasses = {
       sm: 'text-sm',
@@ -70,12 +76,10 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? '#0284c7' : '#ffffff'} />
+        <ActivityIndicator color="#f9fafb" />
       ) : (
         <Text className={getTextClasses()}>{title}</Text>
       )}
     </TouchableOpacity>
   );
 };
-
-

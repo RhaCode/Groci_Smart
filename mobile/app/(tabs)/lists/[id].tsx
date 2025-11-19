@@ -8,7 +8,6 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import shoppingListService, { ShoppingList } from '../../../services/shoppingListService';
@@ -170,34 +169,39 @@ export default function ListDetailScreen() {
   const checkedItems = list.items.filter((item) => item.is_checked);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1 p-4"
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={() => fetchList(true)} />
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={() => fetchList(true)}
+            colors={['#e879f9']}
+            tintColor="#e879f9"
+          />
         }
       >
         {/* List Header */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-surface">
           <View className="flex-row justify-between items-start mb-2">
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-gray-800 mb-1">
+              <Text className="text-2xl font-bold text-text-primary mb-1">
                 {list.name}
               </Text>
               {list.notes && (
-                <Text className="text-gray-600 text-sm">{list.notes}</Text>
+                <Text className="text-text-secondary text-sm">{list.notes}</Text>
               )}
             </View>
             <TouchableOpacity onPress={handleEditList} className="p-2">
-              <Ionicons name="pencil" size={20} color="#6b7280" />
+              <Ionicons name="pencil" size={20} color="#9ca3af" />
             </TouchableOpacity>
           </View>
 
           {/* Estimated Total */}
           {parseFloat(list.estimated_total) > 0 && (
-            <View className="flex-row justify-between items-center pt-3 border-t border-gray-200">
-              <Text className="text-gray-600">Estimated Total</Text>
-              <Text className="text-2xl font-bold text-secondary-600">
+            <View className="flex-row justify-between items-center pt-3 border-t border-border">
+              <Text className="text-text-secondary">Estimated Total</Text>
+              <Text className="text-2xl font-bold text-accent">
                 {formatAmount(list.estimated_total)}
               </Text>
             </View>
@@ -235,12 +239,12 @@ export default function ListDetailScreen() {
 
         {/* Items List */}
         {list.items_count > 0 ? (
-          <Card className="mb-4">
+          <Card className="mb-4 bg-surface">
             {/* Unchecked Items */}
             {uncheckedItems.length > 0 && (
               <>
                 <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-lg font-semibold text-gray-800">
+                  <Text className="text-lg font-semibold text-text-primary">
                     To Buy ({uncheckedItems.length})
                   </Text>
                 </View>
@@ -260,15 +264,15 @@ export default function ListDetailScreen() {
               <>
                 <TouchableOpacity
                   onPress={() => setShowCompleted(!showCompleted)}
-                  className="flex-row justify-between items-center py-3 border-t border-gray-200"
+                  className="flex-row justify-between items-center py-3 border-t border-border"
                 >
-                  <Text className="text-lg font-semibold text-gray-600">
+                  <Text className="text-lg font-semibold text-text-secondary">
                     Completed ({checkedItems.length})
                   </Text>
                   <Ionicons
                     name={showCompleted ? 'chevron-up' : 'chevron-down'}
                     size={20}
-                    color="#6b7280"
+                    color="#9ca3af"
                   />
                 </TouchableOpacity>
 
@@ -285,14 +289,14 @@ export default function ListDetailScreen() {
             )}
           </Card>
         ) : (
-          <Card className="items-center py-8 mb-4">
-            <View className="bg-secondary-100 rounded-full p-6 mb-4">
-              <Ionicons name="cart-outline" size={48} color="#c026d3" />
+          <Card className="items-center py-8 mb-4 bg-surface">
+            <View className="bg-accent-light/20 rounded-full p-6 mb-4">
+              <Ionicons name="cart-outline" size={48} color="#e879f9" />
             </View>
-            <Text className="text-lg font-semibold text-gray-800 mb-2">
+            <Text className="text-lg font-semibold text-text-primary mb-2">
               No Items Yet
             </Text>
-            <Text className="text-gray-600 text-center mb-4">
+            <Text className="text-text-secondary text-center mb-4">
               Start adding items to your shopping list
             </Text>
             <Button
@@ -306,7 +310,7 @@ export default function ListDetailScreen() {
 
         {/* List Actions */}
         {list.items_count > 0 && (
-          <View className="space-y-2 mb-4">
+          <View className="flex gap-3 mb-4">
             {checkedItems.length > 0 && (
               <Button
                 title="Clear Completed Items"
@@ -326,6 +330,6 @@ export default function ListDetailScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

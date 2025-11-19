@@ -27,13 +27,13 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'text-primary-600';
+        return 'text-primary'; // primary color
       case 'completed':
-        return 'text-success-600';
+        return 'text-success'; // success color
       case 'archived':
-        return 'text-gray-600';
+        return 'text-text-muted'; // muted color
       default:
-        return 'text-gray-600';
+        return 'text-text-muted';
     }
   };
 
@@ -47,6 +47,19 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
         return 'archive-outline';
       default:
         return 'ellipse-outline';
+    }
+  };
+
+  const getProgressBarColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-primary'; // primary color for active lists
+      case 'completed':
+        return 'bg-success'; // success color for completed lists
+      case 'archived':
+        return 'bg-text-muted'; // muted color for archived lists
+      default:
+        return 'bg-primary';
     }
   };
 
@@ -69,33 +82,33 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card className="relative">
+      <Card className="relative bg-surface">
         {/* Menu Button */}
         <TouchableOpacity
           onPress={handleMenuPress}
           className="absolute top-3 right-3 p-2"
         >
-          <Ionicons name="ellipsis-vertical" size={20} color="#6b7280" />
+          <Ionicons name="ellipsis-vertical" size={20} color="#9ca3af" />
         </TouchableOpacity>
 
         {/* List Name */}
-        <Text className="text-lg font-bold text-gray-800 mb-2 pr-8" numberOfLines={1}>
+        <Text className="text-lg font-bold text-text-primary mb-2 pr-8" numberOfLines={1}>
           {list.name}
         </Text>
 
         {/* Progress Bar */}
         <View className="mb-3">
           <View className="flex-row justify-between items-center mb-1">
-            <Text className="text-sm text-gray-600">
+            <Text className="text-sm text-text-secondary">
               {list.checked_items_count} of {list.items_count} items
             </Text>
-            <Text className="text-sm font-semibold text-secondary-600">
+            <Text className="text-sm font-semibold text-accent">
               {list.progress_percentage}%
             </Text>
           </View>
-          <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <View className="h-2 bg-surface-light rounded-full overflow-hidden">
             <View
-              className="h-full bg-secondary-600 rounded-full"
+              className={`h-full rounded-full ${getProgressBarColor(list.status)}`}
               style={{ width: `${list.progress_percentage}%` }}
             />
           </View>
@@ -116,14 +129,14 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
           </View>
 
           {parseFloat(list.estimated_total) > 0 && (
-            <Text className="text-lg font-bold text-gray-800">
+            <Text className="text-lg font-bold text-text-primary">
               {formatAmount(list.estimated_total)}
             </Text>
           )}
         </View>
 
         {/* Updated Time */}
-        <Text className="text-xs text-gray-500 mt-2">
+        <Text className="text-xs text-text-muted mt-2">
           Updated {new Date(list.updated_at).toLocaleDateString()}
         </Text>
       </Card>

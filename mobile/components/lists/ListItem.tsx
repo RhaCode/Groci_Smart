@@ -1,4 +1,3 @@
-
 // mobile/components/lists/ListItem.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -30,7 +29,7 @@ export const ListItem: React.FC<ListItemProps> = ({
   return (
     <View
       className={`flex-row items-start py-3 ${
-        showBorder ? 'border-b border-gray-200' : ''
+        showBorder ? 'border-b border-border' : ''
       }`}
     >
       {/* Checkbox */}
@@ -41,11 +40,11 @@ export const ListItem: React.FC<ListItemProps> = ({
         <View
           className={`w-6 h-6 rounded-md border-2 items-center justify-center ${
             item.is_checked
-              ? 'bg-secondary-600 border-secondary-600'
-              : 'border-gray-300'
+              ? 'bg-accent border-accent'
+              : 'border-border-light'
           }`}
         >
-          {item.is_checked && <Ionicons name="checkmark" size={16} color="white" />}
+          {item.is_checked && <Ionicons name="checkmark" size={16} color="#f9fafb" />}
         </View>
       </TouchableOpacity>
 
@@ -59,8 +58,8 @@ export const ListItem: React.FC<ListItemProps> = ({
           <Text
             className={`flex-1 text-base ${
               item.is_checked
-                ? 'text-gray-500 line-through'
-                : 'text-gray-800 font-medium'
+                ? 'text-text-muted line-through'
+                : 'text-text-primary font-medium'
             }`}
             numberOfLines={2}
           >
@@ -69,7 +68,7 @@ export const ListItem: React.FC<ListItemProps> = ({
           {totalPrice && (
             <Text
               className={`ml-2 font-semibold ${
-                item.is_checked ? 'text-gray-500' : 'text-gray-800'
+                item.is_checked ? 'text-text-muted' : 'text-text-primary'
               }`}
             >
               ${totalPrice}
@@ -80,8 +79,8 @@ export const ListItem: React.FC<ListItemProps> = ({
         {/* Item Details */}
         <View className="flex-row flex-wrap items-center gap-2">
           <View className="flex-row items-center">
-            <Ionicons name="cube-outline" size={14} color="#6b7280" />
-            <Text className="text-sm text-gray-600 ml-1">
+            <Ionicons name="cube-outline" size={14} color="#9ca3af" />
+            <Text className="text-sm text-text-secondary ml-1">
               Qty: {parseFloat(item.quantity).toString()}
               {item.unit && ` ${item.unit}`}
             </Text>
@@ -89,10 +88,10 @@ export const ListItem: React.FC<ListItemProps> = ({
 
           {item.estimated_price && (
             <>
-              <Text className="text-gray-400">•</Text>
+              <Text className="text-text-muted">•</Text>
               <View className="flex-row items-center">
-                <Ionicons name="pricetag-outline" size={14} color="#6b7280" />
-                <Text className="text-sm text-gray-600 ml-1">
+                <Ionicons name="pricetag-outline" size={14} color="#9ca3af" />
+                <Text className="text-sm text-text-secondary ml-1">
                   {formatAmount(item.estimated_price)} each
                 </Text>
               </View>
@@ -101,8 +100,8 @@ export const ListItem: React.FC<ListItemProps> = ({
 
           {item.product_details?.lowest_price && (
             <>
-              <Text className="text-gray-400">•</Text>
-              <Text className="text-xs text-success-600">
+              <Text className="text-text-muted">•</Text>
+              <Text className="text-xs text-success">
                 Best: ${item.product_details.lowest_price.toFixed(2)}
               </Text>
             </>
@@ -110,7 +109,7 @@ export const ListItem: React.FC<ListItemProps> = ({
         </View>
 
         {item.notes && (
-          <Text className="text-sm text-gray-500 italic mt-1">{item.notes}</Text>
+          <Text className="text-sm text-text-muted italic mt-1">{item.notes}</Text>
         )}
       </TouchableOpacity>
     </View>

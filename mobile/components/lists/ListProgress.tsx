@@ -15,28 +15,28 @@ export const ListProgress: React.FC<ListProgressProps> = ({
   percentage,
 }) => {
   return (
-    <View className="bg-secondary-50 border border-secondary-200 rounded-lg p-4">
+    <View className="bg-accent-light/10 border border-accent-light/30 rounded-lg p-4">
       <View className="flex-row justify-between items-center mb-2">
         <View className="flex-row items-center">
-          <Ionicons name="checkmark-circle" size={20} color="#c026d3" />
-          <Text className="text-secondary-800 font-semibold ml-2">
+          <Ionicons name="checkmark-circle" size={20} color="#e879f9" />
+          <Text className="text-text-primary font-semibold ml-2">
             Progress
           </Text>
         </View>
-        <Text className="text-2xl font-bold text-secondary-700">
+        <Text className="text-2xl font-bold text-accent">
           {percentage}%
         </Text>
       </View>
 
       {/* Progress Bar */}
-      <View className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
+      <View className="h-3 bg-surface-light rounded-full overflow-hidden mb-2">
         <View
-          className="h-full bg-secondary-600 rounded-full"
+          className="h-full bg-accent rounded-full"
           style={{ width: `${percentage}%` }}
         />
       </View>
 
-      <Text className="text-sm text-gray-600 text-center">
+      <Text className="text-sm text-text-secondary text-center">
         {checkedCount} of {itemsCount} items checked
       </Text>
     </View>
