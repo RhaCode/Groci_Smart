@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
@@ -90,7 +89,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -101,13 +100,13 @@ export default function RegisterScreen() {
         >
           {/* Header Section */}
           <View className="items-center mb-6 mt-4">
-            <View className="bg-primary-100 rounded-full p-6 mb-4">
+            <View className="bg-primary/20 rounded-full p-6 mb-4">
               <Text className="text-5xl">🛒</Text>
             </View>
-            <Text className="text-3xl font-bold text-gray-800 mb-2">
+            <Text className="text-3xl font-bold text-text-primary mb-2">
               Create Account
             </Text>
-            <Text className="text-gray-600 text-center">
+            <Text className="text-text-secondary text-center">
               Join us to start managing your groceries smartly
             </Text>
           </View>
@@ -185,30 +184,31 @@ export default function RegisterScreen() {
               loading={isLoading}
               fullWidth
               size="lg"
+              variant="primary"
             />
           </View>
 
           {/* Login Link */}
           <View className="flex-row justify-center items-center mb-4">
-            <Text className="text-gray-600">Already have an account? </Text>
+            <Text className="text-text-secondary">Already have an account? </Text>
             <TouchableOpacity onPress={navigateToLogin}>
-              <Text className="text-primary-600 font-semibold">Sign In</Text>
+              <Text className="text-primary font-semibold">Sign In</Text>
             </TouchableOpacity>
           </View>
 
           {/* Error Message */}
           {error && (
-            <View className="mt-4 bg-error-50 border border-error-200 rounded-lg p-3">
-              <Text className="text-error-700 text-center">{error}</Text>
+            <View className="mt-4 bg-error/10 border border-error/30 rounded-lg p-3">
+              <Text className="text-error text-center">{error}</Text>
             </View>
           )}
 
           {/* Terms Text */}
-          <Text className="text-gray-500 text-xs text-center mt-4">
+          <Text className="text-text-muted text-xs text-center mt-4">
             By creating an account, you agree to our Terms of Service and Privacy Policy
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

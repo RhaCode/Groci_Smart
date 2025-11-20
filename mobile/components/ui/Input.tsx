@@ -56,7 +56,7 @@ export const Input: React.FC<InputProps> = ({
         )}
       </View>
       
-      {error && <Text className="text-error-600 text-sm mt-1">{error}</Text>}
+      {error && <Text className="text-success text-sm mt-1">{error}</Text>}
     </View>
   );
 };

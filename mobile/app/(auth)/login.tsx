@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
@@ -53,7 +52,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -64,13 +63,13 @@ export default function LoginScreen() {
         >
           {/* Logo/Header Section */}
           <View className="items-center mb-8">
-            <View className="bg-primary-100 rounded-full p-6 mb-4">
+            <View className="bg-primary/20 rounded-full p-6 mb-4">
               <Text className="text-5xl">🛒</Text>
             </View>
-            <Text className="text-3xl font-bold text-gray-800 mb-2">
+            <Text className="text-3xl font-bold text-text-primary mb-2">
               Welcome Back!
             </Text>
-            <Text className="text-gray-600 text-center">
+            <Text className="text-text-secondary text-center">
               Sign in to continue managing your groceries
             </Text>
           </View>
@@ -106,7 +105,7 @@ export default function LoginScreen() {
 
             {/* Forgot Password Link */}
             <TouchableOpacity className="self-end mb-6">
-              <Text className="text-primary-600 font-medium">
+              <Text className="text-primary font-medium">
                 Forgot Password?
               </Text>
             </TouchableOpacity>
@@ -118,25 +117,26 @@ export default function LoginScreen() {
               loading={isLoading}
               fullWidth
               size="lg"
+              variant="primary"
             />
           </View>
 
           {/* Register Link */}
           <View className="flex-row justify-center items-center">
-            <Text className="text-gray-600">Don't have an account? </Text>
+            <Text className="text-text-secondary">Don't have an account? </Text>
             <TouchableOpacity onPress={navigateToRegister}>
-              <Text className="text-primary-600 font-semibold">Sign Up</Text>
+              <Text className="text-primary font-semibold">Sign Up</Text>
             </TouchableOpacity>
           </View>
 
           {/* Error Message */}
           {error && (
-            <View className="mt-4 bg-error-50 border border-error-200 rounded-lg p-3">
-              <Text className="text-error-700 text-center">{error}</Text>
+            <View className="mt-4 bg-error/10 border border-error/30 rounded-lg p-3">
+              <Text className="text-error text-center">{error}</Text>
             </View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
