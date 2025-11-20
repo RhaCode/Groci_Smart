@@ -14,9 +14,21 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    // Hide splash screen when app is ready
-    SplashScreen.hideAsync();
-  }, []);
+    const prepare = async () => {
+      try {
+        // Wait for auth state to load
+        if (!isLoading) {
+          // Small delay to ensure everything is stable
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await SplashScreen.hideAsync();
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    prepare();
+  }, [isLoading]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -28,8 +40,6 @@ function RootLayoutNav() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)/home");
     }
-
-    SplashScreen.hideAsync();
   }, [isAuthenticated, isLoading, segments]);
 
   return <Slot />;
