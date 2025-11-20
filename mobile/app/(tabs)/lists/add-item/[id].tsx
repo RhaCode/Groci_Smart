@@ -152,12 +152,12 @@ export default function AddListItemScreen() {
   return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        className="flex-1 bg-background"
       >
         <ScrollView className="flex-1 p-4" keyboardShouldPersistTaps="handled">
           {/* Product Search */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-3">
               Search Product
             </Text>
 
@@ -178,19 +178,19 @@ export default function AddListItemScreen() {
 
             {/* Search Results */}
             {showSearchResults && searchResults.length > 0 && (
-              <View className="mt-2 border border-gray-200 rounded-lg bg-white">
+              <View className="mt-2 border border-border rounded-lg bg-surface">
                 {searchResults.map((product) => (
                   <TouchableOpacity
                     key={product.id}
                     onPress={() => handleSelectProduct(product)}
-                    className="p-3 border-b border-gray-200"
+                    className="p-3 border-b border-border"
                   >
-                    <Text className="text-gray-800 font-medium">{product.name}</Text>
+                    <Text className="text-text-primary font-medium">{product.name}</Text>
                     {product.brand && (
-                      <Text className="text-sm text-gray-600">{product.brand}</Text>
+                      <Text className="text-sm text-text-secondary">{product.brand}</Text>
                     )}
                     {product.lowest_price && (
-                      <Text className="text-sm text-success-600">
+                      <Text className="text-sm text-success">
                         Best price: ${product.lowest_price.toFixed(2)}
                       </Text>
                     )}
@@ -201,22 +201,22 @@ export default function AddListItemScreen() {
 
             {/* Selected Product */}
             {selectedProduct && (
-              <View className="mt-3 bg-secondary-50 border border-secondary-200 rounded-lg p-3">
+              <View className="mt-3 bg-accent/20 border border-accent/30 rounded-lg p-3">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1">
                     <View className="flex-row items-center mb-1">
-                      <Ionicons name="checkmark-circle" size={20} color="#c026d3" />
-                      <Text className="text-secondary-700 font-semibold ml-2">
+                      <Ionicons name="checkmark-circle" size={20} color="#d946ef" />
+                      <Text className="text-accent font-semibold ml-2">
                         Product Selected
                       </Text>
                     </View>
-                    <Text className="text-gray-800 font-medium">{selectedProduct.name}</Text>
+                    <Text className="text-text-primary font-medium">{selectedProduct.name}</Text>
                     {selectedProduct.brand && (
-                      <Text className="text-sm text-gray-600">{selectedProduct.brand}</Text>
+                      <Text className="text-sm text-text-secondary">{selectedProduct.brand}</Text>
                     )}
                   </View>
                   <TouchableOpacity onPress={handleClearProduct} className="p-1">
-                    <Ionicons name="close-circle" size={24} color="#c026d3" />
+                    <Ionicons name="close-circle" size={24} color="#d946ef" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -224,8 +224,8 @@ export default function AddListItemScreen() {
           </Card>
 
           {/* Item Details */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-3">
               Item Details
             </Text>
 
@@ -288,10 +288,10 @@ export default function AddListItemScreen() {
 
             {/* Total Preview */}
             {quantity && estimatedPrice && (
-              <View className="bg-secondary-50 rounded-lg p-3 mt-2">
+              <View className="bg-accent/20 rounded-lg p-3 mt-2">
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-gray-600">Estimated Total:</Text>
-                  <Text className="text-xl font-bold text-secondary-600">
+                  <Text className="text-text-secondary">Estimated Total:</Text>
+                  <Text className="text-xl font-bold text-accent">
                     ${calculateTotal()}
                   </Text>
                 </View>
@@ -315,7 +315,7 @@ export default function AddListItemScreen() {
             className="py-3 items-center mt-3"
             disabled={isSaving}
           >
-            <Text className="text-gray-600 font-medium">Cancel</Text>
+            <Text className="text-text-secondary font-medium">Cancel</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

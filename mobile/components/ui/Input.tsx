@@ -24,7 +24,7 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <View className={`mb-4 ${containerClassName || ''}`}>
-      {label && <Text className="text-gray-700 font-medium mb-2">{label}</Text>}
+      {label && <Text className="text-success font-medium mb-2">{label}</Text>}
       
       <View className="relative">
         {icon && (

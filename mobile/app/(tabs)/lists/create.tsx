@@ -9,7 +9,6 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import shoppingListService from '../../../services/shoppingListService';
 import { Card } from '../../../components/ui/Card';
@@ -65,7 +64,7 @@ export default function CreateListScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -73,16 +72,16 @@ export default function CreateListScreen() {
         <ScrollView className="flex-1 p-4">
           {/* Header */}
           <View className="mb-6">
-            <Text className="text-2xl font-bold text-gray-800 mb-2">
+            <Text className="text-2xl font-bold text-primary mb-2">
               Create Shopping List
             </Text>
-            <Text className="text-gray-600">
+            <Text className="text-text-secondary">
               Give your list a name and start adding items
             </Text>
           </View>
 
           {/* Form */}
-          <Card className="mb-4">
+          <Card className="mb-4 bg-surface">
             <Input
               label="List Name *"
               placeholder="e.g., Weekly Groceries, Party Supplies"
@@ -109,8 +108,8 @@ export default function CreateListScreen() {
           </Card>
 
           {/* Quick Templates */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-3">
               Quick Templates
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -123,9 +122,9 @@ export default function CreateListScreen() {
                 <TouchableOpacity
                   key={template}
                   onPress={() => setListName(template)}
-                  className="bg-secondary-100 px-4 py-2 rounded-full"
+                  className="bg-accent/20 px-4 py-2 rounded-full"
                 >
-                  <Text className="text-secondary-700 font-medium">{template}</Text>
+                  <Text className="text-accent font-medium">{template}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -147,10 +146,10 @@ export default function CreateListScreen() {
             className="py-3 items-center mt-3"
             disabled={isCreating}
           >
-            <Text className="text-gray-600 font-medium">Cancel</Text>
+            <Text className="text-text-secondary font-medium">Cancel</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
