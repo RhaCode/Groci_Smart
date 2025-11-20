@@ -40,22 +40,107 @@ class ReceiptParser:
         self.subtotal_patterns = [
             r'(?:^|\n)\s*(?:Subtotal|SUBTOTAL)[:\s]*\$?\s*([0-9,]+(?:[.,]\d{2})?)',
         ]
+        
+        # Category mapping based on keywords
+        self.category_keywords = {
+            'Produce': ['vegetable', 'fruit', 'lettuce', 'tomato', 'potato', 'onion', 'carrot', 'apple', 'banana', 'orange'],
+            'Dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'dairy'],
+            'Meat': ['chicken', 'beef', 'pork', 'meat', 'sausage', 'bacon'],
+            'Bakery': ['bread', 'cake', 'pastry', 'bun', 'roll'],
+            'Beverages': ['juice', 'soda', 'water', 'drink', 'cola', 'tea', 'coffee'],
+            'Household': ['soap', 'detergent', 'cleaner', 'tissue', 'paper'],
+        }
     
     def parse_receipt_text(self, text):
-        """Parse receipt text and extract structured data"""
-        if not text:
-            return {}
+        """
+        Parse receipt text and extract structured data
+        Returns format matching OpenAI parser for consistency
+        """
+        if not text or len(text.strip()) < 10:
+            return {
+                'success': False,
+                'error': 'Text is too short or empty',
+                'is_receipt': False,
+                'confidence': 'low'
+            }
+        
+        # Check if text looks like a receipt
+        if not self._is_likely_receipt(text):
+            return {
+                'success': False,
+                'is_receipt': False,
+                'error': 'Text does not appear to be a receipt',
+                'confidence': 'low',
+                'reason': 'Missing typical receipt elements (store name, total, items)'
+            }
+        
+        # Extract data
+        store_name = self.extract_store_name(text)
+        store_location = self.extract_store_location(text)
+        purchase_date = self.extract_date(text)
+        total_amount = self.extract_total(text)
+        tax_amount = self.extract_tax(text)
+        items = self.extract_items(text)
+        
+        # Determine confidence based on what we found
+        confidence = self._calculate_confidence(
+            store_name, purchase_date, total_amount, items
+        )
         
         parsed_data = {
-            'store_name': self.extract_store_name(text),
-            'store_location': self.extract_store_location(text),
-            'purchase_date': self.extract_date(text),
-            'total_amount': self.extract_total(text),
-            'tax_amount': self.extract_tax(text),
-            'items': self.extract_items(text)
+            'success': True,
+            'is_receipt': True,
+            'confidence': confidence,
+            'store_name': store_name,
+            'store_location': store_location,
+            'purchase_date': purchase_date,
+            'total_amount': total_amount,
+            'tax_amount': tax_amount,
+            'items': items
         }
         
         return parsed_data
+    
+    def _is_likely_receipt(self, text):
+        """Check if text looks like a receipt"""
+        text_upper = text.upper()
+        
+        # Look for common receipt indicators
+        has_total = 'TOTAL' in text_upper
+        has_store = any(keyword in text_upper for keyword in ['STORE', 'MARKET', 'SHOP', 'MART', 'SUPERMARKET'])
+        has_prices = bool(re.search(r'\d+[.,]\d{2}', text))
+        
+        return has_total and (has_store or has_prices)
+    
+    def _calculate_confidence(self, store_name, purchase_date, total_amount, items):
+        """Calculate confidence level based on extracted data"""
+        score = 0
+        
+        if store_name:
+            score += 25
+        if purchase_date:
+            score += 25
+        if total_amount and total_amount > 0:
+            score += 25
+        if items and len(items) > 0:
+            score += 25
+        
+        if score >= 75:
+            return 'high'
+        elif score >= 50:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def _guess_category(self, product_name):
+        """Guess product category based on name"""
+        name_lower = product_name.lower()
+        
+        for category, keywords in self.category_keywords.items():
+            if any(keyword in name_lower for keyword in keywords):
+                return category
+        
+        return 'Groceries'  # Default category
     
     def extract_store_name(self, text):
         """Extract store name from receipt text"""
@@ -137,7 +222,7 @@ class ReceiptParser:
                 except:
                     continue
         
-        return Decimal('0.00')
+        return None
     
     def extract_tax(self, text):
         """Extract tax amount from receipt text"""
@@ -287,11 +372,23 @@ class ReceiptParser:
         if total_price == 0:
             total_price = unit_price * quantity
         
+        # Try to extract brand from product name (usually first word if ALL CAPS)
+        brand = ''
+        name_parts = product_name.split()
+        if len(name_parts) > 1 and name_parts[0].isupper():
+            brand = name_parts[0]
+        
+        # Guess category
+        category = self._guess_category(product_name)
+        
         return {
             'name': product_name,
             'normalized_name': product_name.lower().strip(),
+            'brand': brand,
             'quantity': quantity,
+            'unit': '',  # Unit detection could be improved
             'unit_price': unit_price,
             'total_price': total_price,
+            'category': category,
             'lines_consumed': lines_consumed
         }
