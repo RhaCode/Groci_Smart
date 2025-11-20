@@ -17,6 +17,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../../context/ThemeContext';
 
 export default function EditListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function EditListScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   // Form state
   const [listName, setListName] = useState('');
@@ -105,15 +107,19 @@ export default function EditListScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView className="flex-1 p-4">
+        <ScrollView style={{ flex: 1, padding: 16 }}>
           {/* Form */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               List Information
             </Text>
 
@@ -143,25 +149,38 @@ export default function EditListScreen() {
           </Card>
 
           {/* Status Selection */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               Status
             </Text>
-            <View className="flex-row flex-wrap gap-2">
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {statusOptions.map((option) => (
                 <TouchableOpacity
                   key={option.value}
                   onPress={() => setStatus(option.value)}
-                  className={`px-4 py-3 rounded-lg border-2 ${
-                    status === option.value
-                      ? 'bg-secondary-600 border-secondary-600'
-                      : 'bg-white border-gray-300'
-                  }`}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 8,
+                    borderWidth: 2,
+                    backgroundColor: status === option.value
+                      ? theme.colors.accent
+                      : theme.colors.surface,
+                    borderColor: status === option.value
+                      ? theme.colors.accent
+                      : theme.colors.border,
+                  }}
                 >
                   <Text
-                    className={`font-medium ${
-                      status === option.value ? 'text-white' : 'text-gray-700'
-                    }`}
+                    style={{
+                      fontWeight: '500',
+                      color: status === option.value ? theme.colors['text-primary'] : theme.colors['text-primary'],
+                    }}
                   >
                     {option.label}
                   </Text>
@@ -171,30 +190,35 @@ export default function EditListScreen() {
           </Card>
 
           {/* List Stats */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               List Statistics
             </Text>
-            <View className="space-y-2">
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Total Items</Text>
-                <Text className="text-gray-800 font-semibold">{list.items_count}</Text>
+            <View style={{ gap: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                <Text style={{ color: theme.colors['text-secondary'] }}>Total Items</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '600' }}>{list.items_count}</Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Completed Items</Text>
-                <Text className="text-gray-800 font-semibold">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                <Text style={{ color: theme.colors['text-secondary'] }}>Completed Items</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '600' }}>
                   {list.checked_items_count}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Progress</Text>
-                <Text className="text-gray-800 font-semibold">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                <Text style={{ color: theme.colors['text-secondary'] }}>Progress</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '600' }}>
                   {list.progress_percentage}%
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-gray-600">Estimated Total</Text>
-                <Text className="text-gray-800 font-semibold">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                <Text style={{ color: theme.colors['text-secondary'] }}>Estimated Total</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '600' }}>
                   ${parseFloat(list.estimated_total).toFixed(2)}
                 </Text>
               </View>
@@ -214,13 +238,17 @@ export default function EditListScreen() {
           {/* Cancel Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            className="py-3 items-center mt-3"
+            style={{ paddingVertical: 12, alignItems: 'center', marginTop: 12 }}
             disabled={isSaving}
           >
-            <Text className="text-gray-600 font-medium">Cancel</Text>
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontWeight: '500' 
+            }}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
   );
 }

@@ -14,12 +14,14 @@ import shoppingListService from '../../../services/shoppingListService';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function CreateListScreen() {
   const [listName, setListName] = useState('');
   const [notes, setNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { theme } = useTheme();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -64,24 +66,31 @@ export default function CreateListScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView className="flex-1 p-4">
+        <ScrollView style={{ flex: 1, padding: 16 }}>
           {/* Header */}
-          <View className="mb-6">
-            <Text className="text-2xl font-bold text-primary mb-2">
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ 
+              fontSize: 24, 
+              fontWeight: 'bold', 
+              color: theme.colors.primary, 
+              marginBottom: 8 
+            }}>
               Create Shopping List
             </Text>
-            <Text className="text-text-secondary">
+            <Text style={{ 
+              color: theme.colors['text-secondary'] 
+            }}>
               Give your list a name and start adding items
             </Text>
           </View>
 
           {/* Form */}
-          <Card className="mb-4 bg-surface">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
             <Input
               label="List Name *"
               placeholder="e.g., Weekly Groceries, Party Supplies"
@@ -108,11 +117,16 @@ export default function CreateListScreen() {
           </Card>
 
           {/* Quick Templates */}
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-3">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               Quick Templates
             </Text>
-            <View className="flex-row flex-wrap gap-2">
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {[
                 'Weekly Groceries',
                 'Party Shopping',
@@ -122,9 +136,19 @@ export default function CreateListScreen() {
                 <TouchableOpacity
                   key={template}
                   onPress={() => setListName(template)}
-                  className="bg-accent/20 px-4 py-2 rounded-full"
+                  style={{ 
+                    backgroundColor: `${theme.colors.accent}20`, 
+                    paddingHorizontal: 16, 
+                    paddingVertical: 8, 
+                    borderRadius: 9999 
+                  }}
                 >
-                  <Text className="text-accent font-medium">{template}</Text>
+                  <Text style={{ 
+                    color: theme.colors.accent, 
+                    fontWeight: '500' 
+                  }}>
+                    {template}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -143,10 +167,15 @@ export default function CreateListScreen() {
           {/* Cancel Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            className="py-3 items-center mt-3"
+            style={{ paddingVertical: 12, alignItems: 'center', marginTop: 12 }}
             disabled={isCreating}
           >
-            <Text className="text-text-secondary font-medium">Cancel</Text>
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontWeight: '500' 
+            }}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

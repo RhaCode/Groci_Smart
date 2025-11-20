@@ -17,6 +17,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { ListItem } from '../../../components/lists/ListItem';
 import { ListProgress } from '../../../components/lists/ListProgress';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function ListDetailScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(true);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (id) {
@@ -169,39 +171,39 @@ export default function ListDetailScreen() {
   const checkedItems = list.items.filter((item) => item.is_checked);
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView
-        className="flex-1 p-4"
+        style={{ flex: 1, padding: 16 }}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
             onRefresh={() => fetchList(true)}
-            colors={['#e879f9']}
-            tintColor="#e879f9"
+            colors={[theme.colors.accent]}
+            tintColor={theme.colors.accent}
           />
         }
       >
         {/* List Header */}
-        <Card className="mb-4 bg-surface">
-          <View className="flex-row justify-between items-start mb-2">
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-text-primary mb-1">
+        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 4 }}>
                 {list.name}
               </Text>
               {list.notes && (
-                <Text className="text-text-secondary text-sm">{list.notes}</Text>
+                <Text style={{ color: theme.colors['text-secondary'], fontSize: 14 }}>{list.notes}</Text>
               )}
             </View>
-            <TouchableOpacity onPress={handleEditList} className="p-2">
-              <Ionicons name="pencil" size={20} color="#9ca3af" />
+            <TouchableOpacity onPress={handleEditList} style={{ padding: 8 }}>
+              <Ionicons name="pencil" size={20} color={theme.colors['text-muted']} />
             </TouchableOpacity>
           </View>
 
           {/* Estimated Total */}
           {parseFloat(list.estimated_total) > 0 && (
-            <View className="flex-row justify-between items-center pt-3 border-t border-border">
-              <Text className="text-text-secondary">Estimated Total</Text>
-              <Text className="text-2xl font-bold text-accent">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
+              <Text style={{ color: theme.colors['text-secondary'] }}>Estimated Total</Text>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors.accent }}>
                 {formatAmount(list.estimated_total)}
               </Text>
             </View>
@@ -210,7 +212,7 @@ export default function ListDetailScreen() {
 
         {/* Progress */}
         {list.items_count > 0 && (
-          <View className="mb-4">
+          <View style={{ marginBottom: 16 }}>
             <ListProgress
               itemsCount={list.items_count}
               checkedCount={list.checked_items_count}
@@ -220,31 +222,31 @@ export default function ListDetailScreen() {
         )}
 
         {/* Action Buttons */}
-        <View className="flex-row gap-2 mb-4">
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
           <Button
             title="Add Item"
             onPress={handleAddItem}
             variant="secondary"
-            className="flex-1"
+            style={{ flex: 1 }}
           />
           {list.items_count > 0 && (
             <Button
               title="Compare Prices"
               onPress={handleCompareprices}
               variant="primary"
-              className="flex-1"
+              style={{ flex: 1 }}
             />
           )}
         </View>
 
         {/* Items List */}
         {list.items_count > 0 ? (
-          <Card className="mb-4 bg-surface">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
             {/* Unchecked Items */}
             {uncheckedItems.length > 0 && (
               <>
-                <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-lg font-semibold text-text-primary">
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'] }}>
                     To Buy ({uncheckedItems.length})
                   </Text>
                 </View>
@@ -264,15 +266,15 @@ export default function ListDetailScreen() {
               <>
                 <TouchableOpacity
                   onPress={() => setShowCompleted(!showCompleted)}
-                  className="flex-row justify-between items-center py-3 border-t border-border"
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1, borderTopColor: theme.colors.border }}
                 >
-                  <Text className="text-lg font-semibold text-text-secondary">
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-secondary'] }}>
                     Completed ({checkedItems.length})
                   </Text>
                   <Ionicons
                     name={showCompleted ? 'chevron-up' : 'chevron-down'}
                     size={20}
-                    color="#9ca3af"
+                    color={theme.colors['text-muted']}
                   />
                 </TouchableOpacity>
 
@@ -289,14 +291,14 @@ export default function ListDetailScreen() {
             )}
           </Card>
         ) : (
-          <Card className="items-center py-8 mb-4 bg-surface">
-            <View className="bg-accent-light/20 rounded-full p-6 mb-4">
-              <Ionicons name="cart-outline" size={48} color="#e879f9" />
+          <Card style={{ alignItems: 'center', paddingVertical: 32, marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <View style={{ backgroundColor: `${theme.colors.accent}20`, borderRadius: 9999, padding: 24, marginBottom: 16 }}>
+              <Ionicons name="cart-outline" size={48} color={theme.colors.accent} />
             </View>
-            <Text className="text-lg font-semibold text-text-primary mb-2">
+            <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 8 }}>
               No Items Yet
             </Text>
-            <Text className="text-text-secondary text-center mb-4">
+            <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center', marginBottom: 16 }}>
               Start adding items to your shopping list
             </Text>
             <Button
@@ -310,7 +312,7 @@ export default function ListDetailScreen() {
 
         {/* List Actions */}
         {list.items_count > 0 && (
-          <View className="flex gap-3 mb-4">
+          <View style={{ gap: 12, marginBottom: 16 }}>
             {checkedItems.length > 0 && (
               <Button
                 title="Clear Completed Items"

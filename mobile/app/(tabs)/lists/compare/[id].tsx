@@ -13,6 +13,7 @@ import shoppingListService, { PriceComparison } from '../../../../services/shopp
 import { Card } from '../../../../components/ui/Card';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../../context/ThemeContext';
 
 export default function PriceComparisonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,6 +21,7 @@ export default function PriceComparisonScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (id) {
@@ -52,9 +54,18 @@ export default function PriceComparisonScreen() {
   };
 
   const getStoreRankColor = (index: number, total: number) => {
-    if (index === 0) return 'bg-success/20 border-success';
-    if (index === total - 1) return 'bg-error/20 border-error';
-    return 'bg-surface-light border-border-light';
+    if (index === 0) return {
+      backgroundColor: `${theme.colors.success}20`,
+      borderColor: theme.colors.success
+    };
+    if (index === total - 1) return {
+      backgroundColor: `${theme.colors.error}20`,
+      borderColor: theme.colors.error
+    };
+    return {
+      backgroundColor: theme.colors['surface-light'],
+      borderColor: theme.colors['border-light']
+    };
   };
 
   const getStoreRankIcon = (index: number, total: number) => {
@@ -79,15 +90,31 @@ export default function PriceComparisonScreen() {
   // Check if there are no items with prices or if the API returns a message
   if (comparison.message || !comparison.items || comparison.items.length === 0) {
     return (
-      <View className="flex-1 bg-background">
-        <View className="flex-1 justify-center items-center p-6">
-          <View className="bg-warning/20 rounded-full p-6 mb-4 items-center justify-center">
-            <Ionicons name="information-circle-outline" size={64} color="#f59e0b" />
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={{ 
+            backgroundColor: `${theme.colors.warning}20`, 
+            borderRadius: 9999, 
+            padding: 24, 
+            marginBottom: 16,
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <Ionicons name="information-circle-outline" size={64} color={theme.colors.warning} />
           </View>
-          <Text className="text-xl font-bold text-text-primary text-center mb-2">
+          <Text style={{ 
+            fontSize: 20, 
+            fontWeight: 'bold', 
+            color: theme.colors['text-primary'], 
+            textAlign: 'center',
+            marginBottom: 8
+          }}>
             {comparison?.message || 'No Price Data Available'}
           </Text>
-          <Text className="text-text-secondary text-center">
+          <Text style={{ 
+            color: theme.colors['text-secondary'], 
+            textAlign: 'center' 
+          }}>
             Link your list items to products to enable price comparison across stores
           </Text>
         </View>
@@ -103,50 +130,80 @@ export default function PriceComparisonScreen() {
     : [];
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView
-        className="flex-1 p-4"
+        style={{ flex: 1, padding: 16 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={() => fetchComparison(true)}
-            colors={['#0ea5e9']}
-            tintColor="#0ea5e9"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
       >
         {/* Summary Card */}
-        <Card className="mb-4 bg-surface">
-          <View className="items-center mb-4">
-            <Text className="text-text-secondary mb-2">Shopping at</Text>
-            <View className="flex-row items-center">
-              <View className="bg-success/20 rounded-full p-3 mr-3">
-                <Ionicons name="trophy" size={24} color="#22c55e" />
+        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+          <View style={{ alignItems: 'center', marginBottom: 16 }}>
+            <Text style={{ color: theme.colors['text-secondary'], marginBottom: 8 }}>Shopping at</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ 
+                backgroundColor: `${theme.colors.success}20`, 
+                borderRadius: 9999, 
+                padding: 12, 
+                marginRight: 12 
+              }}>
+                <Ionicons name="trophy" size={24} color={theme.colors.success} />
               </View>
               <View>
-                <Text className="text-2xl font-bold text-text-primary">
+                <Text style={{ 
+                  fontSize: 24, 
+                  fontWeight: 'bold', 
+                  color: theme.colors['text-primary'] 
+                }}>
                   {comparison.best_store || 'No data'}
                 </Text>
-                <Text className="text-success font-medium">Best Overall Price</Text>
+                <Text style={{ 
+                  color: theme.colors.success, 
+                  fontWeight: '500' 
+                }}>
+                  Best Overall Price
+                </Text>
               </View>
             </View>
           </View>
 
           {comparison.potential_savings && parseFloat(comparison.potential_savings) > 0 && (
-            <View className="bg-success/10 border border-success/30 rounded-lg p-4">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <Ionicons name="cash-outline" size={24} color="#22c55e" />
-                  <View className="ml-3">
-                    <Text className="text-success font-semibold">
+            <View style={{ 
+              backgroundColor: `${theme.colors.success}10`, 
+              borderWidth: 1, 
+              borderColor: `${theme.colors.success}30`, 
+              borderRadius: 8, 
+              padding: 16 
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="cash-outline" size={24} color={theme.colors.success} />
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={{ 
+                      color: theme.colors.success, 
+                      fontWeight: '600' 
+                    }}>
                       Potential Savings
                     </Text>
-                    <Text className="text-success text-sm">
+                    <Text style={{ 
+                      color: theme.colors.success, 
+                      fontSize: 14 
+                    }}>
                       vs. most expensive store
                     </Text>
                   </View>
                 </View>
-                <Text className="text-2xl font-bold text-success">
+                <Text style={{ 
+                  fontSize: 24, 
+                  fontWeight: 'bold', 
+                  color: theme.colors.success 
+                }}>
                   {formatAmount(comparison.potential_savings)}
                 </Text>
               </View>
@@ -156,86 +213,133 @@ export default function PriceComparisonScreen() {
 
         {/* Store Comparison */}
         {sortedStores.length > 0 && (
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-4">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 16 
+            }}>
               Store Totals
             </Text>
 
-            {sortedStores.map((store, index) => (
-              <View
-                key={store.store}
-                className={`border-2 rounded-lg p-4 mb-3 ${getStoreRankColor(
-                  index,
-                  sortedStores.length
-                )}`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View
-                      className={`rounded-full p-2 mr-3 ${
-                        index === 0 ? 'bg-success/30' : 'bg-surface-light'
-                      }`}
-                    >
-                      <Ionicons
-                        name={getStoreRankIcon(index, sortedStores.length) as any}
-                        size={20}
-                        color={index === 0 ? '#22c55e' : '#9ca3af'}
-                      />
+            {sortedStores.map((store, index) => {
+              const rankColors = getStoreRankColor(index, sortedStores.length);
+              return (
+                <View
+                  key={store.store}
+                  style={{
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    padding: 16,
+                    marginBottom: 12,
+                    backgroundColor: rankColors.backgroundColor,
+                    borderColor: rankColors.borderColor,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View
+                        style={{
+                          borderRadius: 9999,
+                          padding: 8,
+                          marginRight: 12,
+                          backgroundColor: index === 0 ? `${theme.colors.success}30` : theme.colors['surface-light'],
+                        }}
+                      >
+                        <Ionicons
+                          name={getStoreRankIcon(index, sortedStores.length) as any}
+                          size={20}
+                          color={index === 0 ? theme.colors.success : theme.colors['text-muted']}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ 
+                          color: theme.colors['text-primary'], 
+                          fontWeight: '600', 
+                          fontSize: 16 
+                        }}>
+                          {store.store}
+                        </Text>
+                        {index === 0 && (
+                          <Text style={{ 
+                            color: theme.colors.success, 
+                            fontSize: 12, 
+                            fontWeight: '500' 
+                          }}>
+                            Lowest Total
+                          </Text>
+                        )}
+                        {index === sortedStores.length - 1 && sortedStores.length > 1 && (
+                          <Text style={{ 
+                            color: theme.colors.error, 
+                            fontSize: 12, 
+                            fontWeight: '500' 
+                          }}>
+                            Highest Total
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-text-primary font-semibold text-base">
-                        {store.store}
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={{ 
+                        fontSize: 20, 
+                        fontWeight: 'bold', 
+                        color: theme.colors['text-primary'] 
+                      }}>
+                        {formatAmount(store.total)}
                       </Text>
-                      {index === 0 && (
-                        <Text className="text-success text-xs font-medium">
-                          Lowest Total
+                      {index > 0 && (
+                        <Text style={{ 
+                          fontSize: 12, 
+                          color: theme.colors.error 
+                        }}>
+                          +{formatAmount(store.total - sortedStores[0].total)}
                         </Text>
                       )}
-                      {index === sortedStores.length - 1 && sortedStores.length > 1 && (
-                        <Text className="text-error text-xs font-medium">
-                          Highest Total
-                        </Text>
-                      )}
                     </View>
-                  </View>
-                  <View className="items-end">
-                    <Text className="text-xl font-bold text-text-primary">
-                      {formatAmount(store.total)}
-                    </Text>
-                    {index > 0 && (
-                      <Text className="text-xs text-error">
-                        +{formatAmount(store.total - sortedStores[0].total)}
-                      </Text>
-                    )}
                   </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </Card>
         )}
 
         {/* Item-by-Item Comparison */}
         {comparison.items && comparison.items.length > 0 && (
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-4">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 16 
+            }}>
               Item Comparison
             </Text>
 
             {comparison.items.map((item, itemIndex) => (
               <View
                 key={item.item_id}
-                className={`py-4 ${
-                  itemIndex < comparison.items.length - 1
-                    ? 'border-b border-border'
-                    : ''
-                }`}
+                style={{
+                  paddingVertical: 16,
+                  borderBottomWidth: itemIndex < comparison.items.length - 1 ? 1 : 0,
+                  borderBottomColor: itemIndex < comparison.items.length - 1 ? theme.colors.border : 'transparent'
+                }}
               >
                 {/* Item Header */}
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-text-primary mb-1">
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={{ 
+                    fontSize: 16, 
+                    fontWeight: '600', 
+                    color: theme.colors['text-primary'], 
+                    marginBottom: 4 
+                  }}>
                     {item.product_name}
                   </Text>
-                  <Text className="text-sm text-text-secondary">
+                  <Text style={{ 
+                    fontSize: 14, 
+                    color: theme.colors['text-secondary'] 
+                  }}>
                     Quantity: {item.quantity}
                   </Text>
                 </View>
@@ -249,48 +353,66 @@ export default function PriceComparisonScreen() {
                   return (
                     <View
                       key={store.store_id}
-                      className={`flex-row justify-between items-center py-2 px-3 rounded-lg mb-2 ${
-                        isBest
-                          ? 'bg-success/10 border border-success/30'
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        borderRadius: 8,
+                        marginBottom: 8,
+                        backgroundColor: isBest
+                          ? `${theme.colors.success}10`
                           : isWorst
-                          ? 'bg-error/10 border border-error/30'
-                          : 'bg-surface-light'
-                      }`}
+                          ? `${theme.colors.error}10`
+                          : theme.colors['surface-light'],
+                        borderWidth: isBest || isWorst ? 1 : 0,
+                        borderColor: isBest
+                          ? `${theme.colors.success}30`
+                          : isWorst
+                          ? `${theme.colors.error}30`
+                          : 'transparent',
+                      }}
                     >
-                      <View className="flex-row items-center flex-1">
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                         {isBest && (
                           <Ionicons
                             name="checkmark-circle"
                             size={18}
-                            color="#22c55e"
+                            color={theme.colors.success}
                             style={{ marginRight: 8 }}
                           />
                         )}
                         <Text
-                          className={`font-medium ${
-                            isBest
-                              ? 'text-success'
+                          style={{
+                            fontWeight: '500',
+                            color: isBest
+                              ? theme.colors.success
                               : isWorst
-                              ? 'text-error'
-                              : 'text-text-primary'
-                          }`}
+                              ? theme.colors.error
+                              : theme.colors['text-primary'],
+                          }}
                         >
                           {store.store_name}
                         </Text>
                       </View>
-                      <View className="items-end">
+                      <View style={{ alignItems: 'flex-end' }}>
                         <Text
-                          className={`font-bold ${
-                            isBest
-                              ? 'text-success'
+                          style={{
+                            fontWeight: 'bold',
+                            color: isBest
+                              ? theme.colors.success
                               : isWorst
-                              ? 'text-error'
-                              : 'text-text-primary'
-                          }`}
+                              ? theme.colors.error
+                              : theme.colors['text-primary'],
+                          }}
                         >
                           {formatAmount(store.total_price)}
                         </Text>
-                        <Text className="text-xs text-text-secondary">
+                        <Text style={{ 
+                          fontSize: 12, 
+                          color: theme.colors['text-secondary'] 
+                        }}>
                           {formatAmount(store.unit_price)} each
                         </Text>
                       </View>
@@ -300,9 +422,13 @@ export default function PriceComparisonScreen() {
 
                 {/* Best Store for this item */}
                 {item.best_store && (
-                  <View className="mt-2 flex-row items-center">
-                    <Ionicons name="star" size={14} color="#22c55e" />
-                    <Text className="text-xs text-text-secondary ml-1">
+                  <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="star" size={14} color={theme.colors.success} />
+                    <Text style={{ 
+                      fontSize: 12, 
+                      color: theme.colors['text-secondary'], 
+                      marginLeft: 4 
+                    }}>
                       Best at {item.best_store} - {formatAmount(item.best_price)} each
                     </Text>
                   </View>
@@ -313,10 +439,22 @@ export default function PriceComparisonScreen() {
         )}
 
         {/* Info Note */}
-        <View className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
-          <View className="flex-row items-start">
-            <Ionicons name="information-circle" size={20} color="#0ea5e9" />
-            <Text className="flex-1 text-primary text-sm ml-2">
+        <View style={{ 
+          backgroundColor: `${theme.colors.primary}10`, 
+          borderWidth: 1, 
+          borderColor: `${theme.colors.primary}30`, 
+          borderRadius: 8, 
+          padding: 16, 
+          marginBottom: 16 
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
+            <Text style={{ 
+              flex: 1, 
+              color: theme.colors.primary, 
+              fontSize: 14, 
+              marginLeft: 8 
+            }}>
               Prices shown are based on the most recent data available. Actual prices
               may vary. Visit stores for current pricing.
             </Text>

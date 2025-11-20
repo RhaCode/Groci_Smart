@@ -16,6 +16,7 @@ import { ShoppingListCard } from '../../../components/lists/ShoppingListCard';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ShoppingListsScreen() {
   const [lists, setLists] = useState<ShoppingListSummary[]>([]);
@@ -25,6 +26,7 @@ export default function ShoppingListsScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('active');
+  const { theme } = useTheme();
 
   // Fetch lists
   const fetchLists = async (pageNum: number = 1, refresh: boolean = false) => {
@@ -135,14 +137,28 @@ export default function ShoppingListsScreen() {
     if (isLoading) return null;
 
     return (
-      <View className="flex-1 justify-center items-center p-6">
-        <View className="bg-accent-light/20 rounded-full p-6 mb-4">
-          <Ionicons name="list-outline" size={64} color="#e879f9" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <View style={{ 
+          backgroundColor: `${theme.colors.accent}20`, 
+          borderRadius: 9999, 
+          padding: 24, 
+          marginBottom: 16 
+        }}>
+          <Ionicons name="list-outline" size={64} color={theme.colors.accent} />
         </View>
-        <Text className="text-xl font-bold text-text-primary mb-2">
+        <Text style={{ 
+          fontSize: 20, 
+          fontWeight: 'bold', 
+          color: theme.colors['text-primary'], 
+          marginBottom: 8 
+        }}>
           No {statusFilter} Lists
         </Text>
-        <Text className="text-text-secondary text-center mb-6">
+        <Text style={{ 
+          color: theme.colors['text-secondary'], 
+          textAlign: 'center', 
+          marginBottom: 24 
+        }}>
           {statusFilter === 'active'
             ? 'Create your first shopping list to get started'
             : `You don't have any ${statusFilter} lists`}
@@ -162,8 +178,8 @@ export default function ShoppingListsScreen() {
   const renderFooter = () => {
     if (!hasMore) return null;
     return (
-      <View className="py-4">
-        <ActivityIndicator size="small" color="#e879f9" />
+      <View style={{ paddingVertical: 16 }}>
+        <ActivityIndicator size="small" color={theme.colors.accent} />
       </View>
     );
   };
@@ -177,13 +193,22 @@ export default function ShoppingListsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {/* Status Filter Tabs - Keep this as it's functional UI, not navigation */}
-      <View className="px-4 py-3 bg-surface border-b border-border">
-        <View className="flex-row justify-between items-center mb-3">
+      <View style={{ 
+        paddingHorizontal: 16, 
+        paddingVertical: 12, 
+        backgroundColor: theme.colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border
+      }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           {/* List count and stats */}
           <View>
-            <Text className="text-text-secondary text-sm">
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontSize: 14 
+            }}>
               {lists.length} {lists.length === 1 ? 'list' : 'lists'}
             </Text>
           </View>
@@ -191,30 +216,34 @@ export default function ShoppingListsScreen() {
           {/* Create List Button */}
           <TouchableOpacity
             onPress={handleCreateList}
-            className="bg-accent rounded-full p-3"
+            style={{ backgroundColor: theme.colors.accent, borderRadius: 9999, padding: 12 }}
           >
-            <Ionicons name="add" size={24} color="#f9fafb" />
+            <Ionicons name="add" size={24} color={theme.colors['text-primary']} />
           </TouchableOpacity>
         </View>
 
         {/* Status Tabs */}
-        <View className="flex-row gap-2">
+        <View style={{ flexDirection: 'row', gap: 8 }}>
           {statusTabs.map((tab) => (
             <TouchableOpacity
               key={tab.value}
               onPress={() => setStatusFilter(tab.value)}
-              className={`px-4 py-2 rounded-full ${
-                statusFilter === tab.value
-                  ? 'bg-accent'
-                  : 'bg-surface-light'
-              }`}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 9999,
+                backgroundColor: statusFilter === tab.value
+                  ? theme.colors.accent
+                  : theme.colors['surface-light'],
+              }}
             >
               <Text
-                className={`font-medium ${
-                  statusFilter === tab.value 
-                    ? 'text-text-primary' 
-                    : 'text-text-secondary'
-                }`}
+                style={{
+                  fontWeight: '500',
+                  color: statusFilter === tab.value 
+                    ? theme.colors['text-primary'] 
+                    : theme.colors['text-secondary'],
+                }}
               >
                 {tab.label}
               </Text>
@@ -236,15 +265,15 @@ export default function ShoppingListsScreen() {
           />
         )}
         contentContainerStyle={{ padding: 16 }}
-        ItemSeparatorComponent={() => <View className="h-3" />}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={renderEmptyState}
         ListFooterComponent={renderFooter}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
             onRefresh={onRefresh}
-            colors={['#e879f9']}
-            tintColor="#e879f9"
+            colors={[theme.colors.accent]}
+            tintColor={theme.colors.accent}
           />
         }
         onEndReached={loadMore}

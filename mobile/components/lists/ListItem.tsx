@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ShoppingListItem } from '../../services/shoppingListService';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ListItemProps {
   item: ShoppingListItem;
@@ -17,6 +18,8 @@ export const ListItem: React.FC<ListItemProps> = ({
   onPress,
   showBorder = true,
 }) => {
+  const { theme } = useTheme();
+
   const formatAmount = (amount: string | null) => {
     if (!amount) return null;
     return `$${parseFloat(amount).toFixed(2)}`;
@@ -28,48 +31,61 @@ export const ListItem: React.FC<ListItemProps> = ({
 
   return (
     <View
-      className={`flex-row items-start py-3 ${
-        showBorder ? 'border-b border-border' : ''
-      }`}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        paddingVertical: 12,
+        borderBottomWidth: showBorder ? 1 : 0,
+        borderBottomColor: showBorder ? theme.colors.border : 'transparent'
+      }}
     >
       {/* Checkbox */}
       <TouchableOpacity
         onPress={onToggle}
-        className="mr-3 mt-1"
+        style={{ marginRight: 12, marginTop: 2 }}
       >
         <View
-          className={`w-6 h-6 rounded-md border-2 items-center justify-center ${
-            item.is_checked
-              ? 'bg-accent border-accent'
-              : 'border-border-light'
-          }`}
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            borderWidth: 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: item.is_checked ? theme.colors.accent : 'transparent',
+            borderColor: item.is_checked ? theme.colors.accent : theme.colors['border-light'],
+          }}
         >
-          {item.is_checked && <Ionicons name="checkmark" size={16} color="#f9fafb" />}
+          {item.is_checked && <Ionicons name="checkmark" size={16} color={theme.colors['text-primary']} />}
         </View>
       </TouchableOpacity>
 
       {/* Item Content */}
       <TouchableOpacity
         onPress={onPress}
-        className="flex-1"
+        style={{ flex: 1 }}
         disabled={!onPress}
       >
-        <View className="flex-row justify-between items-start mb-1">
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <Text
-            className={`flex-1 text-base ${
-              item.is_checked
-                ? 'text-text-muted line-through'
-                : 'text-text-primary font-medium'
-            }`}
+            style={{
+              flex: 1,
+              fontSize: 16,
+              color: item.is_checked ? theme.colors['text-muted'] : theme.colors['text-primary'],
+              fontWeight: item.is_checked ? 'normal' : '500',
+              textDecorationLine: item.is_checked ? 'line-through' : 'none',
+            }}
             numberOfLines={2}
           >
             {item.product_name}
           </Text>
           {totalPrice && (
             <Text
-              className={`ml-2 font-semibold ${
-                item.is_checked ? 'text-text-muted' : 'text-text-primary'
-              }`}
+              style={{
+                marginLeft: 8,
+                fontWeight: '600',
+                color: item.is_checked ? theme.colors['text-muted'] : theme.colors['text-primary'],
+              }}
             >
               ${totalPrice}
             </Text>
@@ -77,10 +93,10 @@ export const ListItem: React.FC<ListItemProps> = ({
         </View>
 
         {/* Item Details */}
-        <View className="flex-row flex-wrap items-center gap-2">
-          <View className="flex-row items-center">
-            <Ionicons name="cube-outline" size={14} color="#9ca3af" />
-            <Text className="text-sm text-text-secondary ml-1">
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="cube-outline" size={14} color={theme.colors['text-muted']} />
+            <Text style={{ fontSize: 14, color: theme.colors['text-secondary'], marginLeft: 4 }}>
               Qty: {parseFloat(item.quantity).toString()}
               {item.unit && ` ${item.unit}`}
             </Text>
@@ -88,10 +104,10 @@ export const ListItem: React.FC<ListItemProps> = ({
 
           {item.estimated_price && (
             <>
-              <Text className="text-text-muted">•</Text>
-              <View className="flex-row items-center">
-                <Ionicons name="pricetag-outline" size={14} color="#9ca3af" />
-                <Text className="text-sm text-text-secondary ml-1">
+              <Text style={{ color: theme.colors['text-muted'] }}>•</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="pricetag-outline" size={14} color={theme.colors['text-muted']} />
+                <Text style={{ fontSize: 14, color: theme.colors['text-secondary'], marginLeft: 4 }}>
                   {formatAmount(item.estimated_price)} each
                 </Text>
               </View>
@@ -100,8 +116,8 @@ export const ListItem: React.FC<ListItemProps> = ({
 
           {item.product_details?.lowest_price && (
             <>
-              <Text className="text-text-muted">•</Text>
-              <Text className="text-xs text-success">
+              <Text style={{ color: theme.colors['text-muted'] }}>•</Text>
+              <Text style={{ fontSize: 12, color: theme.colors.success }}>
                 Best: ${item.product_details.lowest_price.toFixed(2)}
               </Text>
             </>
@@ -109,7 +125,9 @@ export const ListItem: React.FC<ListItemProps> = ({
         </View>
 
         {item.notes && (
-          <Text className="text-sm text-text-muted italic mt-1">{item.notes}</Text>
+          <Text style={{ fontSize: 14, color: theme.colors['text-muted'], fontStyle: 'italic', marginTop: 4 }}>
+            {item.notes}
+          </Text>
         )}
       </TouchableOpacity>
     </View>

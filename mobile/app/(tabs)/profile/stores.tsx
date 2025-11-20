@@ -17,6 +17,7 @@ import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function StoresScreen() {
   const [preferredStores, setPreferredStores] = useState<PreferredStore[]>([]);
@@ -26,6 +27,8 @@ export default function StoresScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showAddStore, setShowAddStore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { theme } = useTheme();
+
   const [availableStores, setAvailableStores] = useState([
     { id: 1, name: 'Whole Foods Market', location: 'Downtown' },
     { id: 2, name: 'Trader Joe\'s', location: 'Midtown' },
@@ -124,178 +127,250 @@ export default function StoresScreen() {
   const availableToAdd = getAvailableStoresToAdd();
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={() => fetchPreferredStores(true)}
-          colors={['#e879f9']}
-          tintColor="#e879f9"
-        />
-      }
-    >
-      <View className="p-4">
-        {/* Current Preferred Stores */}
-        <View className="mb-4">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-lg font-bold text-text-primary">
-              Your Preferred Stores
-            </Text>
-            <Text className="text-sm text-text-secondary">
-              {preferredStores.length}
-            </Text>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => fetchPreferredStores(true)}
+            colors={[theme.colors.accent]}
+            tintColor={theme.colors.accent}
+          />
+        }
+      >
+        <View style={{ padding: 16 }}>
+          {/* Current Preferred Stores */}
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ 
+                fontSize: 18, 
+                fontWeight: 'bold', 
+                color: theme.colors['text-primary'] 
+              }}>
+                Your Preferred Stores
+              </Text>
+              <Text style={{ 
+                fontSize: 14, 
+                color: theme.colors['text-secondary'] 
+              }}>
+                {preferredStores.length}
+              </Text>
+            </View>
+
+            {preferredStores.length > 0 ? (
+              <Card style={{ backgroundColor: theme.colors.surface }}>
+                {preferredStores.map((store, index) => (
+                  <View
+                    key={store.id}
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingVertical: 16,
+                      paddingHorizontal: 16,
+                      borderBottomWidth: index !== preferredStores.length - 1 ? 1 : 0,
+                      borderBottomColor: index !== preferredStores.length - 1 ? theme.colors.border : 'transparent'
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ 
+                        fontSize: 16, 
+                        fontWeight: '500', 
+                        color: theme.colors['text-primary'] 
+                      }}>
+                        {store.store_name}
+                      </Text>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: theme.colors['text-secondary'], 
+                        marginTop: 4 
+                      }}>
+                        {store.store_location}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleRemoveStore(store.store_id, store.store_name)
+                      }
+                      style={{ marginLeft: 12, padding: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={24} color={theme.colors.error} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </Card>
+            ) : (
+              <Card style={{ alignItems: 'center', paddingVertical: 32, backgroundColor: theme.colors.surface }}>
+                <View style={{ 
+                  backgroundColor: `${theme.colors.accent}20`, 
+                  borderRadius: 9999, 
+                  padding: 24, 
+                  marginBottom: 16 
+                }}>
+                  <Ionicons
+                    name="storefront-outline"
+                    size={48}
+                    color={theme.colors.accent}
+                  />
+                </View>
+                <Text style={{ 
+                  fontSize: 16, 
+                  fontWeight: '600', 
+                  color: theme.colors['text-primary'], 
+                  marginBottom: 8 
+                }}>
+                  No Preferred Stores
+                </Text>
+                <Text style={{ 
+                  fontSize: 14, 
+                  color: theme.colors['text-secondary'], 
+                  textAlign: 'center' 
+                }}>
+                  Add stores to see personalized prices and information
+                </Text>
+              </Card>
+            )}
           </View>
 
-          {preferredStores.length > 0 ? (
-            <Card className="bg-surface">
-              {preferredStores.map((store, index) => (
-                <View
-                  key={store.id}
-                  className={`flex-row justify-between items-center py-4 px-4 ${
-                    index !== preferredStores.length - 1
-                      ? 'border-b border-border'
-                      : ''
-                  }`}
-                >
-                  <View className="flex-1">
-                    <Text className="text-base font-medium text-text-primary">
-                      {store.store_name}
-                    </Text>
-                    <Text className="text-sm text-text-secondary mt-1">
-                      {store.store_location}
-                    </Text>
+          {/* Add Store Section */}
+          <View>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: 'bold', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
+              Add Store
+            </Text>
+
+            {!showAddStore ? (
+              <Button
+                title="Add Preferred Store"
+                onPress={() => setShowAddStore(true)}
+                variant="secondary"
+                fullWidth
+              />
+            ) : (
+              <Card style={{ backgroundColor: theme.colors.surface }}>
+                <View style={{ padding: 16 }}>
+                  {/* Search Input */}
+                  <View style={{ marginBottom: 16 }}>
+                    <View style={{ 
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
+                      borderWidth: 1, 
+                      borderColor: theme.colors.border, 
+                      borderRadius: 8, 
+                      backgroundColor: theme.colors.background, 
+                      paddingHorizontal: 12 
+                    }}>
+                      <Ionicons
+                        name="search"
+                        size={20}
+                        color={theme.colors['text-muted']}
+                      />
+                      <TextInput
+                        style={{ 
+                          flex: 1, 
+                          marginLeft: 8, 
+                          paddingVertical: 8, 
+                          color: theme.colors['text-primary'] 
+                        }}
+                        placeholder="Search stores..."
+                        placeholderTextColor={theme.colors['text-muted']}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                      />
+                    </View>
                   </View>
-                  <TouchableOpacity
-                    onPress={() =>
-                      handleRemoveStore(store.store_id, store.store_name)
-                    }
-                    className="ml-3 p-2"
-                  >
-                    <Ionicons name="close-circle" size={24} color="#ef4444" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </Card>
-          ) : (
-            <Card className="items-center py-8 bg-surface">
-              <View className="bg-accent-light/20 rounded-full p-6 mb-4">
-                <Ionicons
-                  name="storefront-outline"
-                  size={48}
-                  color="#e879f9"
-                />
-              </View>
-              <Text className="text-base font-semibold text-text-primary mb-2">
-                No Preferred Stores
-              </Text>
-              <Text className="text-sm text-text-secondary text-center">
-                Add stores to see personalized prices and information
-              </Text>
-            </Card>
-          )}
-        </View>
 
-        {/* Add Store Section */}
-        <View>
-          <Text className="text-lg font-bold text-text-primary mb-3">
-            Add Store
-          </Text>
-
-          {!showAddStore ? (
-            <Button
-              title="Add Preferred Store"
-              onPress={() => setShowAddStore(true)}
-              variant="secondary"
-              fullWidth
-            />
-          ) : (
-            <Card className="bg-surface">
-              <View className="p-4">
-                {/* Search Input */}
-                <View className="mb-4">
-                  <View className="flex-row items-center border border-border rounded-lg bg-background px-3">
-                    <Ionicons
-                      name="search"
-                      size={20}
-                      color="#9ca3af"
-                    />
-                    <TextInput
-                      className="flex-1 ml-2 py-2 text-text-primary"
-                      placeholder="Search stores..."
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholderTextColor="#6b7280"
-                    />
-                  </View>
-                </View>
-
-                {/* Available Stores List */}
-                {availableToAdd.length > 0 ? (
-                  <View className="mb-4">
-                    {availableToAdd.map((store, index) => (
-                      <View
-                        key={store.id}
-                        className={`flex-row justify-between items-center py-3 ${
-                          index !== availableToAdd.length - 1
-                            ? 'border-b border-border'
-                            : ''
-                        }`}
-                      >
-                        <View className="flex-1">
-                          <Text className="text-base font-medium text-text-primary">
-                            {store.name}
-                          </Text>
-                          <Text className="text-sm text-text-secondary mt-1">
-                            {store.location}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() => handleAddStore(store)}
-                          disabled={isAddingStore}
-                          className="ml-3 bg-accent rounded-lg p-2"
+                  {/* Available Stores List */}
+                  {availableToAdd.length > 0 ? (
+                    <View style={{ marginBottom: 16 }}>
+                      {availableToAdd.map((store, index) => (
+                        <View
+                          key={store.id}
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            paddingVertical: 12,
+                            borderBottomWidth: index !== availableToAdd.length - 1 ? 1 : 0,
+                            borderBottomColor: index !== availableToAdd.length - 1 ? theme.colors.border : 'transparent'
+                          }}
                         >
-                          {isAddingStore ? (
-                            <ActivityIndicator
-                              size="small"
-                              color="#f9fafb"
-                            />
-                          ) : (
-                            <Ionicons
-                              name="add"
-                              size={20}
-                              color="#f9fafb"
-                            />
-                          )}
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <View className="py-6 items-center">
-                    <Text className="text-sm text-text-secondary">
-                      {searchQuery
-                        ? 'No stores match your search'
-                        : 'All available stores added'}
-                    </Text>
-                  </View>
-                )}
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ 
+                              fontSize: 16, 
+                              fontWeight: '500', 
+                              color: theme.colors['text-primary'] 
+                            }}>
+                              {store.name}
+                            </Text>
+                            <Text style={{ 
+                              fontSize: 14, 
+                              color: theme.colors['text-secondary'], 
+                              marginTop: 4 
+                            }}>
+                              {store.location}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => handleAddStore(store)}
+                            disabled={isAddingStore}
+                            style={{ 
+                              marginLeft: 12, 
+                              backgroundColor: theme.colors.accent, 
+                              borderRadius: 8, 
+                              padding: 8 
+                            }}
+                          >
+                            {isAddingStore ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={theme.colors['text-primary']}
+                              />
+                            ) : (
+                              <Ionicons
+                                name="add"
+                                size={20}
+                                color={theme.colors['text-primary']}
+                              />
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: theme.colors['text-secondary'] 
+                      }}>
+                        {searchQuery
+                          ? 'No stores match your search'
+                          : 'All available stores added'}
+                      </Text>
+                    </View>
+                  )}
 
-                {/* Close Button */}
-                <Button
-                  title="Close"
-                  onPress={() => {
-                    setShowAddStore(false);
-                    setSearchQuery('');
-                  }}
-                  variant="outline"
-                  fullWidth
-                />
-              </View>
-            </Card>
-          )}
+                  {/* Close Button */}
+                  <Button
+                    title="Close"
+                    onPress={() => {
+                      setShowAddStore(false);
+                      setSearchQuery('');
+                    }}
+                    variant="outline"
+                    fullWidth
+                  />
+                </View>
+              </Card>
+            )}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

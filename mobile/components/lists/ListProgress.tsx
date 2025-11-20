@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ListProgressProps {
   itemsCount: number;
@@ -14,29 +15,51 @@ export const ListProgress: React.FC<ListProgressProps> = ({
   checkedCount,
   percentage,
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <View className="bg-accent-light/10 border border-accent-light/30 rounded-lg p-4">
-      <View className="flex-row justify-between items-center mb-2">
-        <View className="flex-row items-center">
-          <Ionicons name="checkmark-circle" size={20} color="#e879f9" />
-          <Text className="text-text-primary font-semibold ml-2">
+    <View style={{
+      backgroundColor: `${theme.colors.accent}10`,
+      borderWidth: 1,
+      borderColor: `${theme.colors.accent}30`,
+      borderRadius: 8,
+      padding: 16,
+    }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent} />
+          <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', marginLeft: 8 }}>
             Progress
           </Text>
         </View>
-        <Text className="text-2xl font-bold text-accent">
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors.accent }}>
           {percentage}%
         </Text>
       </View>
 
       {/* Progress Bar */}
-      <View className="h-3 bg-surface-light rounded-full overflow-hidden mb-2">
+      <View style={{ 
+        height: 12, 
+        backgroundColor: theme.colors['surface-light'], 
+        borderRadius: 9999, 
+        overflow: 'hidden', 
+        marginBottom: 8 
+      }}>
         <View
-          className="h-full bg-accent rounded-full"
-          style={{ width: `${percentage}%` }}
+          style={{ 
+            height: '100%', 
+            backgroundColor: theme.colors.accent, 
+            borderRadius: 9999,
+            width: `${percentage}%` 
+          }}
         />
       </View>
 
-      <Text className="text-sm text-text-secondary text-center">
+      <Text style={{ 
+        fontSize: 14, 
+        color: theme.colors['text-secondary'], 
+        textAlign: 'center' 
+      }}>
         {checkedCount} of {itemsCount} items checked
       </Text>
     </View>

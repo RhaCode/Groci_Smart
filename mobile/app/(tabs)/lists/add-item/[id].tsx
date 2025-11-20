@@ -17,10 +17,12 @@ import { Card } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
+import { useTheme } from '../../../../context/ThemeContext';
 
 export default function AddListItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
+  const { theme } = useTheme();
 
   // Form state
   const [productName, setProductName] = useState('');
@@ -150,27 +152,33 @@ export default function AddListItemScreen() {
   };
 
   return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1 bg-background"
+        style={{ flex: 1 }}
       >
-        <ScrollView className="flex-1 p-4" keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1, padding: 16 }} keyboardShouldPersistTaps="handled">
           {/* Product Search */}
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-3">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               Search Product
             </Text>
 
-            <View className="relative">
+            <View style={{ position: 'relative' }}>
               <Input
                 placeholder="Search for product..."
                 value={searchQuery}
                 onChangeText={handleSearch}
                 icon="search-outline"
-                containerClassName="mb-0"
+                containerStyle={{ marginBottom: 0 }}
               />
               {isSearching && (
-                <View className="absolute right-3 top-3">
+                <View style={{ position: 'absolute', right: 12, top: 12 }}>
                   <LoadingSpinner size="small" />
                 </View>
               )}
@@ -178,19 +186,42 @@ export default function AddListItemScreen() {
 
             {/* Search Results */}
             {showSearchResults && searchResults.length > 0 && (
-              <View className="mt-2 border border-border rounded-lg bg-surface">
+              <View style={{ 
+                marginTop: 8, 
+                borderWidth: 1, 
+                borderColor: theme.colors.border, 
+                borderRadius: 8, 
+                backgroundColor: theme.colors.surface 
+              }}>
                 {searchResults.map((product) => (
                   <TouchableOpacity
                     key={product.id}
                     onPress={() => handleSelectProduct(product)}
-                    className="p-3 border-b border-border"
+                    style={{ 
+                      padding: 12, 
+                      borderBottomWidth: 1, 
+                      borderBottomColor: theme.colors.border 
+                    }}
                   >
-                    <Text className="text-text-primary font-medium">{product.name}</Text>
+                    <Text style={{ 
+                      color: theme.colors['text-primary'], 
+                      fontWeight: '500' 
+                    }}>
+                      {product.name}
+                    </Text>
                     {product.brand && (
-                      <Text className="text-sm text-text-secondary">{product.brand}</Text>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: theme.colors['text-secondary'] 
+                      }}>
+                        {product.brand}
+                      </Text>
                     )}
                     {product.lowest_price && (
-                      <Text className="text-sm text-success">
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: theme.colors.success 
+                      }}>
                         Best price: ${product.lowest_price.toFixed(2)}
                       </Text>
                     )}
@@ -201,22 +232,43 @@ export default function AddListItemScreen() {
 
             {/* Selected Product */}
             {selectedProduct && (
-              <View className="mt-3 bg-accent/20 border border-accent/30 rounded-lg p-3">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <Ionicons name="checkmark-circle" size={20} color="#d946ef" />
-                      <Text className="text-accent font-semibold ml-2">
+              <View style={{ 
+                marginTop: 12, 
+                backgroundColor: `${theme.colors.accent}20`, 
+                borderWidth: 1, 
+                borderColor: `${theme.colors.accent}30`, 
+                borderRadius: 8, 
+                padding: 12 
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent} />
+                      <Text style={{ 
+                        color: theme.colors.accent, 
+                        fontWeight: '600', 
+                        marginLeft: 8 
+                      }}>
                         Product Selected
                       </Text>
                     </View>
-                    <Text className="text-text-primary font-medium">{selectedProduct.name}</Text>
+                    <Text style={{ 
+                      color: theme.colors['text-primary'], 
+                      fontWeight: '500' 
+                    }}>
+                      {selectedProduct.name}
+                    </Text>
                     {selectedProduct.brand && (
-                      <Text className="text-sm text-text-secondary">{selectedProduct.brand}</Text>
+                      <Text style={{ 
+                        fontSize: 14, 
+                        color: theme.colors['text-secondary'] 
+                      }}>
+                        {selectedProduct.brand}
+                      </Text>
                     )}
                   </View>
-                  <TouchableOpacity onPress={handleClearProduct} className="p-1">
-                    <Ionicons name="close-circle" size={24} color="#d946ef" />
+                  <TouchableOpacity onPress={handleClearProduct} style={{ padding: 4 }}>
+                    <Ionicons name="close-circle" size={24} color={theme.colors.accent} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -224,8 +276,13 @@ export default function AddListItemScreen() {
           </Card>
 
           {/* Item Details */}
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-3">
+          <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               Item Details
             </Text>
 
@@ -241,8 +298,8 @@ export default function AddListItemScreen() {
               icon="pricetag-outline"
             />
 
-            <View className="flex-row gap-2">
-              <View className="flex-1">
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View style={{ flex: 1 }}>
                 <Input
                   label="Quantity *"
                   placeholder="1"
@@ -256,7 +313,7 @@ export default function AddListItemScreen() {
                   keyboardType="decimal-pad"
                 />
               </View>
-              <View className="flex-1">
+              <View style={{ flex: 1 }}>
                 <Input
                   label="Unit"
                   placeholder="kg, lbs, each"
@@ -288,10 +345,19 @@ export default function AddListItemScreen() {
 
             {/* Total Preview */}
             {quantity && estimatedPrice && (
-              <View className="bg-accent/20 rounded-lg p-3 mt-2">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-text-secondary">Estimated Total:</Text>
-                  <Text className="text-xl font-bold text-accent">
+              <View style={{ 
+                backgroundColor: `${theme.colors.accent}20`, 
+                borderRadius: 8, 
+                padding: 12, 
+                marginTop: 8 
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: theme.colors['text-secondary'] }}>Estimated Total:</Text>
+                  <Text style={{ 
+                    fontSize: 20, 
+                    fontWeight: 'bold', 
+                    color: theme.colors.accent 
+                  }}>
                     ${calculateTotal()}
                   </Text>
                 </View>
@@ -312,12 +378,18 @@ export default function AddListItemScreen() {
           {/* Cancel Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            className="py-3 items-center mt-3"
+            style={{ paddingVertical: 12, alignItems: 'center', marginTop: 12 }}
             disabled={isSaving}
           >
-            <Text className="text-text-secondary font-medium">Cancel</Text>
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontWeight: '500' 
+            }}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </View>
   );
 }

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import authService from '../../../services/authService';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
+import { useTheme } from '../../../context/ThemeContext';
 
 interface FormData {
   old_password: string;
@@ -39,6 +40,7 @@ export default function ChangePasswordScreen() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const { theme } = useTheme();
 
   const calculatePasswordStrength = (password: string): PasswordStrength => {
     let score = 0;
@@ -50,12 +52,12 @@ export default function ChangePasswordScreen() {
     if (/[^a-zA-Z0-9]/.test(password)) score++;
 
     const strengths: PasswordStrength[] = [
-      { score: 0, label: 'Very Weak', color: '#ef4444' },
-      { score: 1, label: 'Weak', color: '#f97316' },
-      { score: 2, label: 'Fair', color: '#eab308' },
-      { score: 3, label: 'Good', color: '#3b82f6' },
-      { score: 4, label: 'Strong', color: '#22c55e' },
-      { score: 5, label: 'Very Strong', color: '#22c55e' },
+      { score: 0, label: 'Very Weak', color: theme.colors.error },
+      { score: 1, label: 'Weak', color: theme.colors.warning },
+      { score: 2, label: 'Fair', color: theme.colors.warning },
+      { score: 3, label: 'Good', color: theme.colors.primary },
+      { score: 4, label: 'Strong', color: theme.colors.success },
+      { score: 5, label: 'Very Strong', color: theme.colors.success },
     ];
 
     return strengths[score] || strengths[0];
@@ -135,15 +137,32 @@ export default function ChangePasswordScreen() {
     field: keyof FormData;
     placeholder: string;
   }) => (
-    <View className="mb-4">
-      <Text className="text-sm font-medium text-text-secondary mb-2">
+    <View style={{ marginBottom: 16 }}>
+      <Text style={{ 
+        fontSize: 14, 
+        fontWeight: '500', 
+        color: theme.colors['text-secondary'], 
+        marginBottom: 8 
+      }}>
         {label}
       </Text>
-      <View className="flex-row items-center border border-border rounded-lg bg-background px-3">
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        borderWidth: 1, 
+        borderColor: theme.colors.border, 
+        borderRadius: 8, 
+        backgroundColor: theme.colors.background, 
+        paddingHorizontal: 12 
+      }}>
         <TextInput
-          className="flex-1 py-3 text-text-primary"
+          style={{ 
+            flex: 1, 
+            paddingVertical: 12, 
+            color: theme.colors['text-primary'] 
+          }}
           placeholder={placeholder}
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={theme.colors['text-muted']}
           secureTextEntry={!showPasswords[field]}
           value={formData[field]}
           onChangeText={(value) => {
@@ -162,17 +181,23 @@ export default function ChangePasswordScreen() {
             })
           }
           disabled={isLoading}
-          className="p-2"
+          style={{ padding: 8 }}
         >
           <Ionicons
             name={showPasswords[field] ? 'eye' : 'eye-off'}
             size={20}
-            color="#9ca3af"
+            color={theme.colors['text-muted']}
           />
         </TouchableOpacity>
       </View>
       {errors[field] && (
-        <Text className="text-xs text-error mt-1">{errors[field]}</Text>
+        <Text style={{ 
+          fontSize: 12, 
+          color: theme.colors.error, 
+          marginTop: 4 
+        }}>
+          {errors[field]}
+        </Text>
       )}
     </View>
   );
@@ -180,136 +205,164 @@ export default function ChangePasswordScreen() {
   const passwordStrength = calculatePasswordStrength(formData.new_password);
 
   return (
-    <ScrollView className="flex-1 p-4 bg-background">
-      {/* Security Info */}
-      <Card className="mb-4 bg-blue-500/10 border border-blue-500/20">
-        <View className="flex-row items-start p-4">
-          <Ionicons
-            name="information-circle"
-            size={24}
-            color="#3b82f6"
-            style={{ marginRight: 12, marginTop: 2 }}
-          />
-          <Text className="flex-1 text-sm text-text-primary leading-5">
-            Use a strong password with uppercase, lowercase, numbers, and
-            symbols for better security.
-          </Text>
-        </View>
-      </Card>
-
-      {/* Form */}
-      <Card className="bg-surface p-4 mb-4">
-        {/* Current Password */}
-        <PasswordField
-          label="Current Password"
-          field="old_password"
-          placeholder="Enter current password"
-        />
-
-        {/* New Password */}
-        <PasswordField
-          label="New Password"
-          field="new_password"
-          placeholder="Enter new password"
-        />
-
-        {/* Password Strength Indicator */}
-        {formData.new_password && (
-          <View className="mb-4">
-            <View className="flex-row items-center mb-2">
-              <Text className="text-xs font-medium text-text-secondary">
-                Password Strength:
-              </Text>
-              <Text
-                className="text-xs font-bold ml-2"
-                style={{ color: passwordStrength.color }}
-              >
-                {passwordStrength.label}
-              </Text>
-            </View>
-            <View className="flex-row gap-1">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <View
-                  key={index}
-                  className="flex-1 h-2 rounded-full"
-                  style={{
-                    backgroundColor:
-                      index < passwordStrength.score
-                        ? passwordStrength.color
-                        : '#e5e7eb',
-                  }}
-                />
-              ))}
-            </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView style={{ flex: 1, padding: 16 }}>
+        {/* Security Info */}
+        <Card style={{ 
+          marginBottom: 16, 
+          backgroundColor: `${theme.colors.primary}10`, 
+          borderWidth: 1, 
+          borderColor: `${theme.colors.primary}20` 
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', padding: 16 }}>
+            <Ionicons
+              name="information-circle"
+              size={24}
+              color={theme.colors.primary}
+              style={{ marginRight: 12, marginTop: 2 }}
+            />
+            <Text style={{ 
+              flex: 1, 
+              fontSize: 14, 
+              color: theme.colors['text-primary'], 
+              lineHeight: 20 
+            }}>
+              Use a strong password with uppercase, lowercase, numbers, and
+              symbols for better security.
+            </Text>
           </View>
-        )}
+        </Card>
 
-        {/* Confirm New Password */}
-        <PasswordField
-          label="Confirm New Password"
-          field="new_password2"
-          placeholder="Re-enter new password"
-        />
-      </Card>
+        {/* Form */}
+        <Card style={{ backgroundColor: theme.colors.surface, padding: 16, marginBottom: 16 }}>
+          {/* Current Password */}
+          <PasswordField
+            label="Current Password"
+            field="old_password"
+            placeholder="Enter current password"
+          />
 
-      {/* Password Requirements */}
-      <Card className="bg-surface p-4 mb-6">
-        <Text className="text-sm font-medium text-text-primary mb-3">
-          Password Requirements
-        </Text>
-        <View className="space-y-2">
-          {[
-            {
-              met: formData.new_password.length >= 8,
-              text: 'At least 8 characters',
-            },
-            {
-              met: /[a-z]/.test(formData.new_password),
-              text: 'Lowercase letters (a-z)',
-            },
-            {
-              met: /[A-Z]/.test(formData.new_password),
-              text: 'Uppercase letters (A-Z)',
-            },
-            {
-              met: /[0-9]/.test(formData.new_password),
-              text: 'Numbers (0-9)',
-            },
-            {
-              met: /[^a-zA-Z0-9]/.test(formData.new_password),
-              text: 'Special characters (!@#$%)',
-            },
-          ].map((req, index) => (
-            <View key={index} className="flex-row items-center gap-2">
-              <Ionicons
-                name={req.met ? 'checkmark-circle' : 'ellipse-outline'}
-                size={16}
-                color={req.met ? '#22c55e' : '#9ca3af'}
-              />
-              <Text
-                className={`text-sm ${
-                  req.met
-                    ? 'text-text-primary'
-                    : 'text-text-secondary'
-                }`}
-              >
-                {req.text}
-              </Text>
+          {/* New Password */}
+          <PasswordField
+            label="New Password"
+            field="new_password"
+            placeholder="Enter new password"
+          />
+
+          {/* Password Strength Indicator */}
+          {formData.new_password && (
+            <View style={{ marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={{ 
+                  fontSize: 12, 
+                  fontWeight: '500', 
+                  color: theme.colors['text-secondary'] 
+                }}>
+                  Password Strength:
+                </Text>
+                <Text
+                  style={{ 
+                    fontSize: 12, 
+                    fontWeight: 'bold', 
+                    marginLeft: 8,
+                    color: passwordStrength.color 
+                  }}
+                >
+                  {passwordStrength.label}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                {[0, 1, 2, 3, 4].map((index) => (
+                  <View
+                    key={index}
+                    style={{
+                      flex: 1,
+                      height: 8,
+                      borderRadius: 9999,
+                      backgroundColor:
+                        index < passwordStrength.score
+                          ? passwordStrength.color
+                          : theme.colors['surface-light'],
+                    }}
+                  />
+                ))}
+              </View>
             </View>
-          ))}
-        </View>
-      </Card>
+          )}
 
-      {/* Submit Button */}
-      <Button
-        title={isLoading ? 'Changing Password...' : 'Change Password'}
-        onPress={handleChangePassword}
-        variant="primary"
-        fullWidth
-        disabled={isLoading}
-      />
+          {/* Confirm New Password */}
+          <PasswordField
+            label="Confirm New Password"
+            field="new_password2"
+            placeholder="Re-enter new password"
+          />
+        </Card>
 
-      <View className="h-6" />
-    </ScrollView>
+        {/* Password Requirements */}
+        <Card style={{ backgroundColor: theme.colors.surface, padding: 16, marginBottom: 24 }}>
+          <Text style={{ 
+            fontSize: 14, 
+            fontWeight: '500', 
+            color: theme.colors['text-primary'], 
+            marginBottom: 12 
+          }}>
+            Password Requirements
+          </Text>
+          <View style={{ gap: 8 }}>
+            {[
+              {
+                met: formData.new_password.length >= 8,
+                text: 'At least 8 characters',
+              },
+              {
+                met: /[a-z]/.test(formData.new_password),
+                text: 'Lowercase letters (a-z)',
+              },
+              {
+                met: /[A-Z]/.test(formData.new_password),
+                text: 'Uppercase letters (A-Z)',
+              },
+              {
+                met: /[0-9]/.test(formData.new_password),
+                text: 'Numbers (0-9)',
+              },
+              {
+                met: /[^a-zA-Z0-9]/.test(formData.new_password),
+                text: 'Special characters (!@#$%)',
+              },
+            ].map((req, index) => (
+              <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons
+                  name={req.met ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={16}
+                  color={req.met ? theme.colors.success : theme.colors['text-muted']}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: req.met
+                      ? theme.colors['text-primary']
+                      : theme.colors['text-secondary'],
+                  }}
+                >
+                  {req.text}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+
+        {/* Submit Button */}
+        <Button
+          title={isLoading ? 'Changing Password...' : 'Change Password'}
+          onPress={handleChangePassword}
+          variant="primary"
+          fullWidth
+          disabled={isLoading}
+        />
+
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    </View>
   );
 }

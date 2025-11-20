@@ -20,7 +20,7 @@ import { ThemeMode } from '../../../constants/theme';
 
 export default function SettingsScreen() {
   const { user, refreshUser } = useAuth();
-  const { themeMode, setThemeMode } = useTheme();
+  const { theme, themeMode, setThemeMode } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -88,241 +88,305 @@ export default function SettingsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background justify-center items-center">
-        <ActivityIndicator size="large" color="#e879f9" />
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={theme.colors.accent} />
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1 p-4 bg-background">
-      {/* Personal Information */}
-      <Text className="text-lg font-bold text-text-primary mb-3">
-        Personal Information
-      </Text>
-      <Card className="mb-4 bg-surface p-4">
-        <View className="mb-4">
-          <Text className="text-sm font-medium text-text-secondary mb-2">
-            First Name
-          </Text>
-          <TextInput
-            className="border border-border rounded-lg px-3 py-2 text-text-primary bg-background"
-            placeholder="First Name"
-            value={formData.first_name}
-            onChangeText={(value) =>
-              setFormData({ ...formData, first_name: value })
-            }
-            editable={!isSaving}
-          />
-        </View>
-
-        <View className="mb-4">
-          <Text className="text-sm font-medium text-text-secondary mb-2">
-            Last Name
-          </Text>
-          <TextInput
-            className="border border-border rounded-lg px-3 py-2 text-text-primary bg-background"
-            placeholder="Last Name"
-            value={formData.last_name}
-            onChangeText={(value) =>
-              setFormData({ ...formData, last_name: value })
-            }
-            editable={!isSaving}
-          />
-        </View>
-
-        <View className="mb-4">
-          <Text className="text-sm font-medium text-text-secondary mb-2">
-            Phone Number
-          </Text>
-          <TextInput
-            className="border border-border rounded-lg px-3 py-2 text-text-primary bg-background"
-            placeholder="+1 (555) 000-0000"
-            value={formData.phone_number}
-            onChangeText={(value) =>
-              setFormData({ ...formData, phone_number: value })
-            }
-            keyboardType="phone-pad"
-            editable={!isSaving}
-          />
-        </View>
-
-        <View>
-          <Text className="text-sm font-medium text-text-secondary mb-2">
-            Budget Limit ($)
-          </Text>
-          <TextInput
-            className="border border-border rounded-lg px-3 py-2 text-text-primary bg-background"
-            placeholder="0.00"
-            value={formData.budget_limit}
-            onChangeText={handleBudgetChange}
-            keyboardType="decimal-pad"
-            editable={!isSaving}
-          />
-          <Text className="text-xs text-text-muted mt-1">
-            Optional: Set a monthly budget limit for shopping lists
-          </Text>
-        </View>
-      </Card>
-
-      {/* Theme Settings */}
-      <Text className="text-lg font-bold text-text-primary mb-3 mt-4">
-        Appearance
-      </Text>
-      <Card className="mb-4 bg-surface">
-        <Text className="text-sm font-medium text-text-secondary px-4 pt-4 mb-3">
-          Theme
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView style={{ flex: 1, padding: 16 }}>
+        {/* Personal Information */}
+        <Text style={{ 
+          fontSize: 18, 
+          fontWeight: 'bold', 
+          color: theme.colors['text-primary'], 
+          marginBottom: 12 
+        }}>
+          Personal Information
         </Text>
-        <View className="px-4 pb-4 gap-2">
-          {(['auto', 'light', 'dark'] as ThemeMode[]).map((mode) => (
-            <TouchableOpacity
-              key={mode}
-              onPress={() => setThemeMode(mode)}
-              className={`flex-row items-center p-3 rounded-lg border ${
-                themeMode === mode
-                  ? 'bg-accent/10 border-accent'
-                  : 'bg-background border-border'
-              }`}
-            >
-              <Ionicons
-                name={
-                  mode === 'auto'
-                    ? 'phone-portrait-outline'
-                    : mode === 'light'
-                    ? 'sunny-outline'
-                    : 'moon-outline'
-                }
-                size={20}
-                color={themeMode === mode ? '#e879f9' : '#9ca3af'}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                className={`flex-1 font-medium capitalize ${
-                  themeMode === mode
-                    ? 'text-accent'
-                    : 'text-text-primary'
-                }`}
-              >
-                {mode === 'auto' ? 'Auto (System)' : mode}
-              </Text>
-              {themeMode === mode && (
-                <Ionicons name="checkmark" size={20} color="#e879f9" />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </Card>
-
-      {/* Notifications */}
-      <Text className="text-lg font-bold text-text-primary mb-3 mt-2">
-        Notifications
-      </Text>
-      <Card className="mb-4 bg-surface">
-        {[
-          {
-            key: 'email_notifications',
-            title: 'Email Notifications',
-            description: 'Receive email updates about your lists',
-          },
-          {
-            key: 'price_alerts',
-            title: 'Price Alerts',
-            description: 'Get notified when prices drop',
-          },
-          {
-            key: 'list_reminders',
-            title: 'List Reminders',
-            description: 'Reminders to complete your shopping lists',
-          },
-        ].map((item, index) => (
-          <View
-            key={item.key}
-            className={`flex-row justify-between items-center py-4 px-4 ${
-              index !== 2 ? 'border-b border-border' : ''
-            }`}
-          >
-            <View className="flex-1">
-              <Text className="text-base font-medium text-text-primary">
-                {item.title}
-              </Text>
-              <Text className="text-xs text-text-secondary mt-1">
-                {item.description}
-              </Text>
-            </View>
-            <Switch
-              value={
-                notifications[item.key as keyof typeof notifications]
+        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface, padding: 16 }}>
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 14, 
+              fontWeight: '500', 
+              color: theme.colors['text-secondary'], 
+              marginBottom: 8 
+            }}>
+              First Name
+            </Text>
+            <TextInput
+              style={{ 
+                borderWidth: 1, 
+                borderColor: theme.colors.border, 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 8, 
+                color: theme.colors['text-primary'], 
+                backgroundColor: theme.colors.background 
+              }}
+              placeholder="First Name"
+              placeholderTextColor={theme.colors['text-muted']}
+              value={formData.first_name}
+              onChangeText={(value) =>
+                setFormData({ ...formData, first_name: value })
               }
-              onValueChange={(value) =>
-                setNotifications({
-                  ...notifications,
-                  [item.key]: value,
-                })
-              }
-              disabled={isSaving}
+              editable={!isSaving}
             />
           </View>
-        ))}
-      </Card>
 
-      {/* Theme Settings */}
-      <Text className="text-lg font-bold text-text-primary mb-3 mt-4">
-        Appearance
-      </Text>
-      <Card className="mb-4 bg-surface">
-        <Text className="text-sm font-medium text-text-secondary px-4 pt-4 mb-3">
-          Theme
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 14, 
+              fontWeight: '500', 
+              color: theme.colors['text-secondary'], 
+              marginBottom: 8 
+            }}>
+              Last Name
+            </Text>
+            <TextInput
+              style={{ 
+                borderWidth: 1, 
+                borderColor: theme.colors.border, 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 8, 
+                color: theme.colors['text-primary'], 
+                backgroundColor: theme.colors.background 
+              }}
+              placeholder="Last Name"
+              placeholderTextColor={theme.colors['text-muted']}
+              value={formData.last_name}
+              onChangeText={(value) =>
+                setFormData({ ...formData, last_name: value })
+              }
+              editable={!isSaving}
+            />
+          </View>
+
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 14, 
+              fontWeight: '500', 
+              color: theme.colors['text-secondary'], 
+              marginBottom: 8 
+            }}>
+              Phone Number
+            </Text>
+            <TextInput
+              style={{ 
+                borderWidth: 1, 
+                borderColor: theme.colors.border, 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 8, 
+                color: theme.colors['text-primary'], 
+                backgroundColor: theme.colors.background 
+              }}
+              placeholder="+1 (555) 000-0000"
+              placeholderTextColor={theme.colors['text-muted']}
+              value={formData.phone_number}
+              onChangeText={(value) =>
+                setFormData({ ...formData, phone_number: value })
+              }
+              keyboardType="phone-pad"
+              editable={!isSaving}
+            />
+          </View>
+
+          <View>
+            <Text style={{ 
+              fontSize: 14, 
+              fontWeight: '500', 
+              color: theme.colors['text-secondary'], 
+              marginBottom: 8 
+            }}>
+              Budget Limit ($)
+            </Text>
+            <TextInput
+              style={{ 
+                borderWidth: 1, 
+                borderColor: theme.colors.border, 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 8, 
+                color: theme.colors['text-primary'], 
+                backgroundColor: theme.colors.background 
+              }}
+              placeholder="0.00"
+              placeholderTextColor={theme.colors['text-muted']}
+              value={formData.budget_limit}
+              onChangeText={handleBudgetChange}
+              keyboardType="decimal-pad"
+              editable={!isSaving}
+            />
+            <Text style={{ 
+              fontSize: 12, 
+              color: theme.colors['text-muted'], 
+              marginTop: 4 
+            }}>
+              Optional: Set a monthly budget limit for shopping lists
+            </Text>
+          </View>
+        </Card>
+
+        {/* Theme Settings */}
+        <Text style={{ 
+          fontSize: 18, 
+          fontWeight: 'bold', 
+          color: theme.colors['text-primary'], 
+          marginBottom: 12,
+          marginTop: 16
+        }}>
+          Appearance
         </Text>
-        <View className="px-4 pb-4 gap-2">
-          {(['auto', 'light', 'dark'] as ThemeMode[]).map((mode) => (
-            <TouchableOpacity
-              key={mode}
-              onPress={() => setThemeMode(mode)}
-              className={`flex-row items-center p-3 rounded-lg border ${
-                themeMode === mode
-                  ? 'bg-accent/10 border-primary'
-                  : 'bg-background border-border'
-              }`}
-            >
-              <Ionicons
-                name={
-                  mode === 'auto'
-                    ? 'phone-portrait-outline'
-                    : mode === 'light'
-                    ? 'sunny-outline'
-                    : 'moon-outline'
-                }
-                size={20}
-                color={themeMode === mode ? '#e879f9' : '#9ca3af'}
-                style={{ marginRight: 12 }}
-              />
-              <Text
-                className={`flex-1 font-medium capitalize ${
-                  themeMode === mode
-                    ? 'text-accent'
-                    : 'text-text-primary'
-                }`}
+        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+          <Text style={{ 
+            fontSize: 14, 
+            fontWeight: '500', 
+            color: theme.colors['text-secondary'], 
+            paddingHorizontal: 16, 
+            paddingTop: 16, 
+            marginBottom: 12 
+          }}>
+            Theme
+          </Text>
+          <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}>
+            {(['auto', 'light', 'dark'] as ThemeMode[]).map((mode) => (
+              <TouchableOpacity
+                key={mode}
+                onPress={() => setThemeMode(mode)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 12,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  backgroundColor: themeMode === mode
+                    ? `${theme.colors.accent}10`
+                    : theme.colors.background,
+                  borderColor: themeMode === mode
+                    ? theme.colors.accent
+                    : theme.colors.border,
+                }}
               >
-                {mode === 'auto' ? 'Auto (System)' : mode}
-              </Text>
-              {themeMode === mode && (
-                <Ionicons name="checkmark" size={20} color="#e879f9" />
-              )}
-            </TouchableOpacity>
+                <Ionicons
+                  name={
+                    mode === 'auto'
+                      ? 'phone-portrait-outline'
+                      : mode === 'light'
+                      ? 'sunny-outline'
+                      : 'moon-outline'
+                  }
+                  size={20}
+                  color={themeMode === mode ? theme.colors.accent : theme.colors['text-muted']}
+                  style={{ marginRight: 12 }}
+                />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontWeight: '500',
+                    fontSize: 16,
+                    textTransform: 'capitalize',
+                    color: themeMode === mode
+                      ? theme.colors.accent
+                      : theme.colors['text-primary'],
+                  }}
+                >
+                  {mode === 'auto' ? 'Auto (System)' : mode}
+                </Text>
+                {themeMode === mode && (
+                  <Ionicons name="checkmark" size={20} color={theme.colors.accent} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Card>
+
+        {/* Notifications */}
+        <Text style={{ 
+          fontSize: 18, 
+          fontWeight: 'bold', 
+          color: theme.colors['text-primary'], 
+          marginBottom: 12,
+          marginTop: 8
+        }}>
+          Notifications
+        </Text>
+        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
+          {[
+            {
+              key: 'email_notifications',
+              title: 'Email Notifications',
+              description: 'Receive email updates about your lists',
+            },
+            {
+              key: 'price_alerts',
+              title: 'Price Alerts',
+              description: 'Get notified when prices drop',
+            },
+            {
+              key: 'list_reminders',
+              title: 'List Reminders',
+              description: 'Reminders to complete your shopping lists',
+            },
+          ].map((item, index) => (
+            <View
+              key={item.key}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                borderBottomWidth: index !== 2 ? 1 : 0,
+                borderBottomColor: index !== 2 ? theme.colors.border : 'transparent'
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={{ 
+                  fontSize: 16, 
+                  fontWeight: '500', 
+                  color: theme.colors['text-primary'] 
+                }}>
+                  {item.title}
+                </Text>
+                <Text style={{ 
+                  fontSize: 12, 
+                  color: theme.colors['text-secondary'], 
+                  marginTop: 4 
+                }}>
+                  {item.description}
+                </Text>
+              </View>
+              <Switch
+                value={notifications[item.key as keyof typeof notifications]}
+                onValueChange={(value) =>
+                  setNotifications({
+                    ...notifications,
+                    [item.key]: value,
+                  })
+                }
+                disabled={isSaving}
+                trackColor={{ false: theme.colors['surface-light'], true: theme.colors.accent }}
+                thumbColor={theme.colors.surface}
+              />
+            </View>
           ))}
-        </View>
-      </Card>
+        </Card>
 
-      {/* Save Button */}
-      <Button
-        title={isSaving ? 'Saving...' : 'Save Changes'}
-        onPress={handleSaveProfile}
-        variant="primary"
-        fullWidth
-        disabled={isSaving}
-      />
+        {/* Save Button */}
+        <Button
+          title={isSaving ? 'Saving...' : 'Save Changes'}
+          onPress={handleSaveProfile}
+          variant="primary"
+          fullWidth
+          disabled={isSaving}
+        />
 
-      <View className="h-6" />
-    </ScrollView>
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    </View>
   );
 }
