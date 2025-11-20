@@ -1,6 +1,7 @@
 // mobile/components/ui/LoadingSpinner.tsx
 import React from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, ViewStyle } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -13,17 +14,52 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'large',
   fullScreen = false,
 }) => {
-  const Container = fullScreen ? View : React.Fragment;
-  const containerProps = fullScreen
-    ? { className: 'flex-1 justify-center items-center bg-white' }
-    : {};
+  const { theme } = useTheme();
+
+  const containerStyle: ViewStyle = fullScreen ? {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+  } : {};
+
+  const contentStyle: ViewStyle = {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  };
+
+  if (fullScreen) {
+    return (
+      <View style={containerStyle}>
+        <View style={contentStyle}>
+          <ActivityIndicator size={size} color={theme.colors.primary} />
+          {message && (
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              marginTop: 8, 
+              textAlign: 'center' 
+            }}>
+              {message}
+            </Text>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <Container {...containerProps}>
-      <View className="justify-center items-center p-4">
-        <ActivityIndicator size={size} color="#0284c7" />
-        {message && <Text className="text-gray-600 mt-2 text-center">{message}</Text>}
-      </View>
-    </Container>
+    <View style={contentStyle}>
+      <ActivityIndicator size={size} color={theme.colors.primary} />
+      {message && (
+        <Text style={{ 
+          color: theme.colors['text-secondary'], 
+          marginTop: 8, 
+          textAlign: 'center' 
+        }}>
+          {message}
+        </Text>
+      )}
+    </View>
   );
 };

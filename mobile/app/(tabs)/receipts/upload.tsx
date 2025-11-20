@@ -16,6 +16,7 @@ import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { Card } from "../../../components/ui/Card";
 import receiptService from "../../../services/receiptService";
+import { useTheme } from "../../../context/ThemeContext";
 
 export default function UploadReceiptScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export default function UploadReceiptScreen() {
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
+  const { theme } = useTheme();
 
   // Request camera permissions
   const requestCameraPermission = async () => {
@@ -181,10 +183,10 @@ export default function UploadReceiptScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 p-10 bg-background">
+    <ScrollView style={{ flex: 1, padding: 16, backgroundColor: theme.colors.background }}>
       {/* Image Preview Section */}
-      <Card className="mb-4 bg-surface">
-        <Text className="text-lg font-semibold text-text-primary mb-3">
+      <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
           Receipt Image
         </Text>
 
@@ -192,38 +194,47 @@ export default function UploadReceiptScreen() {
           <View>
             <Image
               source={{ uri: imageUri }}
-              className="w-full h-96 rounded-lg bg-surface-light"
+              style={{ width: '100%', height: 384, borderRadius: 8, backgroundColor: theme.colors['surface-light'] }}
               resizeMode="contain"
             />
-            <View className="flex-row justify-between mt-3">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
               <Button
                 title="Change Image"
                 onPress={showImageOptions}
                 variant="outline"
                 size="sm"
-                className="flex-1 mr-2"
+                style={{ flex: 1, marginRight: 8 }}
               />
               <Button
                 title="Remove"
                 onPress={removeImage}
                 variant="danger"
                 size="sm"
-                className="flex-1 ml-2"
+                style={{ flex: 1, marginLeft: 8 }}
               />
             </View>
           </View>
         ) : (
           <TouchableOpacity
             onPress={showImageOptions}
-            className="border-2 border-dashed border-border-light rounded-lg p-8 items-center justify-center bg-surface-light"
+            style={{ 
+              borderWidth: 2, 
+              borderStyle: 'dashed', 
+              borderColor: theme.colors['border-light'], 
+              borderRadius: 8, 
+              padding: 32, 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              backgroundColor: theme.colors['surface-light'] 
+            }}
           >
-            <View className="bg-primary/20 rounded-full p-4 mb-3">
-              <Ionicons name="camera-outline" size={48} color="#0ea5e9" />
+            <View style={{ backgroundColor: `${theme.colors.primary}20`, borderRadius: 9999, padding: 16, marginBottom: 12 }}>
+              <Ionicons name="camera-outline" size={48} color={theme.colors.primary} />
             </View>
-            <Text className="text-text-primary font-semibold text-center mb-1">
+            <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', textAlign: 'center', marginBottom: 4 }}>
               Add Receipt Image
             </Text>
-            <Text className="text-text-secondary text-sm text-center">
+            <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, textAlign: 'center' }}>
               Take a photo or choose from gallery
             </Text>
           </TouchableOpacity>
@@ -231,11 +242,11 @@ export default function UploadReceiptScreen() {
       </Card>
 
       {/* Optional Information Section */}
-      <Card className="mb-4 bg-surface">
-        <Text className="text-lg font-semibold text-text-primary mb-3">
+      <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
           Receipt Details (Optional)
         </Text>
-        <Text className="text-text-secondary text-sm mb-4">
+        <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 16 }}>
           These details will be auto-extracted from the image, but you can
           provide them manually if needed.
         </Text>
@@ -280,10 +291,10 @@ export default function UploadReceiptScreen() {
       {/* Cancel Button */}
       <TouchableOpacity
         onPress={() => router.back()}
-        className="py-3 items-center my-10"
+        style={{ paddingVertical: 12, alignItems: 'center', marginTop: 40 }}
         disabled={isUploading}
       >
-        <Text className="text-text-secondary font-medium">Cancel</Text>
+        <Text style={{ color: theme.colors['text-secondary'], fontWeight: '500' }}>Cancel</Text>
       </TouchableOpacity>
     </ScrollView>
   );

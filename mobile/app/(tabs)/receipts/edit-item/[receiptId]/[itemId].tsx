@@ -14,6 +14,7 @@ import { Button } from '../../../../../components/ui/Button';
 import { Input } from '../../../../../components/ui/Input';
 import { LoadingSpinner } from '../../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../../../context/ThemeContext';
 
 export default function EditReceiptItemScreen() {
   const { receiptId, itemId } = useLocalSearchParams<{ 
@@ -37,6 +38,8 @@ export default function EditReceiptItemScreen() {
     quantity?: string;
     unitPrice?: string;
   }>({});
+
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (receiptId && itemId) {
@@ -144,27 +147,18 @@ export default function EditReceiptItemScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         <ScrollView
-          className="flex-1 p-4"
+          style={{ flex: 1, padding: 16 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View className="mb-6">
-            <Text className="text-2xl font-bold text-text-primary">
-              Edit Item
-            </Text>
-            <Text className="text-text-secondary mt-1">
-              Update receipt item details
-            </Text>
-          </View>
 
           {/* Form */}
-          <View className="space-y-4">
+          <View style={{ gap: 16 }}>
             <Input
               label="Product Name"
               placeholder="Enter product name"
@@ -178,8 +172,8 @@ export default function EditReceiptItemScreen() {
               autoFocus
             />
 
-            <View className="flex-row gap-3">
-              <View className="flex-1">
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
                 <Input
                   label="Quantity"
                   placeholder="1.0"
@@ -194,7 +188,7 @@ export default function EditReceiptItemScreen() {
                 />
               </View>
 
-              <View className="flex-1">
+              <View style={{ flex: 1 }}>
                 <Input
                   label="Unit Price"
                   placeholder="0.00"
@@ -220,16 +214,33 @@ export default function EditReceiptItemScreen() {
 
             {/* Total Preview */}
             {quantity && unitPrice && (
-              <View className="bg-primary/10 border border-primary/30 rounded-lg p-4">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-text-primary font-medium">
+              <View style={{ 
+                backgroundColor: `${theme.colors.primary}10`, 
+                borderWidth: 1, 
+                borderColor: `${theme.colors.primary}30`, 
+                borderRadius: 8, 
+                padding: 16 
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ 
+                    color: theme.colors['text-primary'], 
+                    fontWeight: '500' 
+                  }}>
                     Total Price
                   </Text>
-                  <Text className="text-primary text-xl font-bold">
+                  <Text style={{ 
+                    color: theme.colors.primary, 
+                    fontSize: 20, 
+                    fontWeight: 'bold' 
+                  }}>
                     ${calculateTotal()}
                   </Text>
                 </View>
-                <Text className="text-text-secondary text-sm mt-1">
+                <Text style={{ 
+                  color: theme.colors['text-secondary'], 
+                  fontSize: 14, 
+                  marginTop: 4 
+                }}>
                   {quantity} × ${unitPrice}
                 </Text>
               </View>
@@ -237,7 +248,7 @@ export default function EditReceiptItemScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View className="mt-6 space-y-3">
+          <View style={{ marginTop: 24, gap: 12 }}>
             <Button
               title="Save Changes"
               onPress={handleSave}
@@ -258,9 +269,17 @@ export default function EditReceiptItemScreen() {
           </View>
 
           {/* Helper Text */}
-          <View className="mt-6 bg-surface rounded-lg p-4">
-            <Text className="text-text-secondary text-sm">
-              💡 <Text className="font-semibold">Tip:</Text> The total price will be automatically calculated based on quantity and unit price.
+          <View style={{ 
+            marginTop: 24, 
+            backgroundColor: theme.colors.surface, 
+            borderRadius: 8, 
+            padding: 16 
+          }}>
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontSize: 14 
+            }}>
+              💡 <Text style={{ fontWeight: '600' }}>Tip:</Text> The total price will be automatically calculated based on quantity and unit price.
             </Text>
           </View>
         </ScrollView>

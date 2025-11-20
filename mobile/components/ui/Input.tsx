@@ -1,43 +1,66 @@
-
 // mobile/components/ui/Input.tsx
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, TextInputProps } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, TextInputProps, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   icon?: keyof typeof Ionicons.glyphMap;
-  containerClassName?: string;
+  containerStyle?: ViewStyle;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
   error,
   icon,
-  containerClassName,
+  containerStyle,
   secureTextEntry,
   ...props
 }) => {
   const [isSecureVisible, setIsSecureVisible] = useState(false);
   const isPassword = secureTextEntry;
+  const { theme } = useTheme();
 
   return (
-    <View className={`mb-4 ${containerClassName || ''}`}>
-      {label && <Text className="text-success font-medium mb-2">{label}</Text>}
+    <View style={[{ marginBottom: 16 }, containerStyle]}>
+      {label && (
+        <Text style={{ 
+          color: theme.colors.success, 
+          fontWeight: '500', 
+          marginBottom: 8 
+        }}>
+          {label}
+        </Text>
+      )}
       
-      <View className="relative">
+      <View style={{ position: 'relative' }}>
         {icon && (
-          <View className="absolute left-3 top-4 z-10">
-            <Ionicons name={icon} size={20} color="#6b7280" />
+          <View style={{ 
+            position: 'absolute', 
+            left: 12, 
+            top: 14, 
+            zIndex: 10 
+          }}>
+            <Ionicons name={icon} size={20} color={theme.colors['text-muted']} />
           </View>
         )}
         
         <TextInput
-          className={`bg-white border border-gray-300 rounded-lg px-4 py-3 text-base ${
-            icon ? 'pl-12' : ''
-          } ${isPassword ? 'pr-12' : ''} ${error ? 'border-error-500' : 'focus:border-primary-500'}`}
-          placeholderTextColor="#9ca3af"
+          style={{
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: error ? theme.colors.error : theme.colors.border,
+            borderRadius: 8,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            fontSize: 16,
+            color: theme.colors['text-primary'],
+            paddingLeft: icon ? 44 : 16,
+            paddingRight: isPassword ? 44 : 16,
+          }}
+          placeholderTextColor={theme.colors['text-muted']}
           secureTextEntry={isPassword && !isSecureVisible}
           {...props}
         />
@@ -45,18 +68,26 @@ export const Input: React.FC<InputProps> = ({
         {isPassword && (
           <TouchableOpacity
             onPress={() => setIsSecureVisible(!isSecureVisible)}
-            className="absolute right-3 top-4"
+            style={{ position: 'absolute', right: 12, top: 14 }}
           >
             <Ionicons
               name={isSecureVisible ? 'eye-off-outline' : 'eye-outline'}
               size={20}
-              color="#6b7280"
+              color={theme.colors['text-muted']}
             />
           </TouchableOpacity>
         )}
       </View>
       
-      {error && <Text className="text-success text-sm mt-1">{error}</Text>}
+      {error && (
+        <Text style={{ 
+          color: theme.colors.success, 
+          fontSize: 14, 
+          marginTop: 4 
+        }}>
+          {error}
+        </Text>
+      )}
     </View>
   );
 };

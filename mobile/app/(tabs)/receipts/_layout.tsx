@@ -1,50 +1,59 @@
 // mobile/app/(tabs)/receipts/_layout.tsx
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
+import { useTheme } from "../../../context/ThemeContext";
 
 export default function ReceiptsLayout() {
+  const { theme } = useTheme();
+
   return (
     <Stack
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#1f2937',
+          backgroundColor: theme.colors.surface,
         },
-        headerTintColor: '#f9fafb',
+        headerTintColor: theme.colors["text-primary"],
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: "bold",
         },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: 'Receipts',
+          title: "Receipts",
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
-          title: 'Receipt Details',
+          title: "Receipt Details",
         }}
       />
       <Stack.Screen
         name="upload"
         options={{
-          title: 'Upload Receipt',
-          presentation: 'modal',
+          title: "Upload Receipt",
+          presentation: "modal",
         }}
       />
       <Stack.Screen
         name="edit/[id]"
         options={{
-          title: 'Edit Receipt',
+          title: "Edit Receipt",
+        }}
+      />
+      <Stack.Screen
+        name="edit-item/[receiptId]/[itemId]"
+        options={{
+          title: "Edit Receipt Item",
         }}
       />
       <Stack.Screen
         name="add-item/[id]"
         options={{
-          title: 'Add Item',
-          presentation: 'modal',
+          title: "Add Item",
+          presentation: "modal",
         }}
       />
     </Stack>

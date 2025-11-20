@@ -1,5 +1,5 @@
 // mobile/app/(tabs)/receipts/add-item/[id].tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,30 +8,36 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import receiptService from '../../../../services/receiptService';
-import productService, { ProductSummary } from '../../../../services/productService';
-import { Card } from '../../../../components/ui/Card';
-import { Button } from '../../../../components/ui/Button';
-import { Input } from '../../../../components/ui/Input';
-import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import receiptService from "../../../../services/receiptService";
+import productService, {
+  ProductSummary,
+} from "../../../../services/productService";
+import { Card } from "../../../../components/ui/Card";
+import { Button } from "../../../../components/ui/Button";
+import { Input } from "../../../../components/ui/Input";
+import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
+import { useTheme } from "../../../../context/ThemeContext";
 
 export default function AddReceiptItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [isSaving, setIsSaving] = useState(false);
+  const { theme } = useTheme();
 
   // Form state
-  const [productName, setProductName] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [unitPrice, setUnitPrice] = useState('');
-  const [category, setCategory] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(null);
+  const [productName, setProductName] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(
+    null
+  );
 
   // Product search
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProductSummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -42,7 +48,7 @@ export default function AddReceiptItemScreen() {
   // Search for products
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
+
     if (query.length < 2) {
       setSearchResults([]);
       setShowSearchResults(false);
@@ -55,7 +61,7 @@ export default function AddReceiptItemScreen() {
       setSearchResults(results);
       setShowSearchResults(true);
     } catch (err) {
-      console.error('Search error:', err);
+      console.error("Search error:", err);
     } finally {
       setIsSearching(false);
     }
@@ -67,7 +73,7 @@ export default function AddReceiptItemScreen() {
     setProductName(product.name);
     setSearchQuery(product.name);
     setShowSearchResults(false);
-    
+
     // Pre-fill unit price if available
     if (product.lowest_price) {
       setUnitPrice(product.lowest_price.toString());
@@ -77,9 +83,9 @@ export default function AddReceiptItemScreen() {
   // Clear product selection
   const handleClearProduct = () => {
     setSelectedProduct(null);
-    setProductName('');
-    setSearchQuery('');
-    setUnitPrice('');
+    setProductName("");
+    setSearchQuery("");
+    setUnitPrice("");
   };
 
   // Validate form
@@ -87,15 +93,15 @@ export default function AddReceiptItemScreen() {
     const newErrors: Record<string, string> = {};
 
     if (!productName.trim()) {
-      newErrors.productName = 'Product name is required';
+      newErrors.productName = "Product name is required";
     }
 
     if (!quantity || parseFloat(quantity) <= 0) {
-      newErrors.quantity = 'Quantity must be greater than 0';
+      newErrors.quantity = "Quantity must be greater than 0";
     }
 
     if (!unitPrice || parseFloat(unitPrice) < 0) {
-      newErrors.unitPrice = 'Valid unit price is required';
+      newErrors.unitPrice = "Valid unit price is required";
     }
 
     setErrors(newErrors);
@@ -127,212 +133,371 @@ export default function AddReceiptItemScreen() {
 
       await receiptService.addReceiptItem(parseInt(id), itemData);
 
-      Alert.alert('Success', 'Item added to receipt', [
+      Alert.alert("Success", "Item added to receipt", [
         {
-          text: 'Add Another',
+          text: "Add Another",
           onPress: () => {
             // Reset form
-            setProductName('');
-            setQuantity('1');
-            setUnitPrice('');
-            setCategory('');
+            setProductName("");
+            setQuantity("1");
+            setUnitPrice("");
+            setCategory("");
             setSelectedProduct(null);
-            setSearchQuery('');
+            setSearchQuery("");
           },
         },
         {
-          text: 'Done',
+          text: "Done",
           onPress: () => router.back(),
         },
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to add item');
+      Alert.alert("Error", err.message || "Failed to add item");
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={{ flex: 1, padding: 16 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView className="flex-1 p-4" keyboardShouldPersistTaps="handled">
-          {/* Product Search */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Search Product
-            </Text>
-            <Text className="text-gray-600 text-sm mb-3">
-              Search for existing products or enter manually
-            </Text>
+        {/* Product Search */}
+        <Card style={{ marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+              color: theme.colors["text-primary"],
+              marginBottom: 12,
+            }}
+          >
+            Search Product
+          </Text>
+          <Text
+            style={{
+              color: theme.colors["text-secondary"],
+              fontSize: 14,
+              marginBottom: 12,
+            }}
+          >
+            Search for existing products or enter manually
+          </Text>
 
-            <View className="relative">
-              <Input
-                placeholder="Search for product..."
-                value={searchQuery}
-                onChangeText={handleSearch}
-                icon="search-outline"
-                containerClassName="mb-0"
-              />
-              {isSearching && (
-                <View className="absolute right-3 top-3">
-                  <LoadingSpinner size="small" />
-                </View>
-              )}
-            </View>
-
-            {/* Search Results */}
-            {showSearchResults && searchResults.length > 0 && (
-              <View className="mt-2 border border-gray-200 rounded-lg bg-white">
-                {searchResults.map((product) => (
-                  <TouchableOpacity
-                    key={product.id}
-                    onPress={() => handleSelectProduct(product)}
-                    className="p-3 border-b border-gray-200"
-                  >
-                    <Text className="text-gray-800 font-medium">{product.name}</Text>
-                    {product.brand && (
-                      <Text className="text-sm text-gray-600">{product.brand}</Text>
-                    )}
-                    {product.lowest_price && (
-                      <Text className="text-sm text-primary-600">
-                        Lowest: ${product.lowest_price.toFixed(2)}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* Selected Product */}
-            {selectedProduct && (
-              <View className="mt-3 bg-primary-50 border border-primary-200 rounded-lg p-3">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <Ionicons name="checkmark-circle" size={20} color="#0284c7" />
-                      <Text className="text-primary-700 font-semibold ml-2">
-                        Product Selected
-                      </Text>
-                    </View>
-                    <Text className="text-gray-800 font-medium">{selectedProduct.name}</Text>
-                    {selectedProduct.brand && (
-                      <Text className="text-sm text-gray-600">{selectedProduct.brand}</Text>
-                    )}
-                  </View>
-                  <TouchableOpacity onPress={handleClearProduct} className="p-1">
-                    <Ionicons name="close-circle" size={24} color="#0284c7" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </Card>
-
-          {/* Item Details */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
-              Item Details
-            </Text>
-
+          <View style={{ position: "relative" }}>
             <Input
-              label="Product Name *"
-              placeholder="Enter product name"
-              value={productName}
-              onChangeText={(value) => {
-                setProductName(value);
-                setErrors((prev) => ({ ...prev, productName: '' }));
+              placeholder="Search for product..."
+              value={searchQuery}
+              onChangeText={handleSearch}
+              icon="search-outline"
+              containerStyle={{ marginBottom: 0 }}
+            />
+            {isSearching && (
+              <View style={{ position: "absolute", right: 12, top: 12 }}>
+                <LoadingSpinner size="small" />
+              </View>
+            )}
+          </View>
+
+          {/* Search Results */}
+          {showSearchResults && searchResults.length > 0 && (
+            <View
+              style={{
+                marginTop: 8,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                borderRadius: 8,
+                backgroundColor: theme.colors.surface,
               }}
-              error={errors.productName}
-              icon="pricetag-outline"
-            />
+            >
+              {searchResults.map((product) => (
+                <TouchableOpacity
+                  key={product.id}
+                  onPress={() => handleSelectProduct(product)}
+                  style={{
+                    padding: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.colors["text-primary"],
+                      fontWeight: "500",
+                    }}
+                  >
+                    {product.name}
+                  </Text>
+                  {product.brand && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: theme.colors["text-secondary"],
+                      }}
+                    >
+                      {product.brand}
+                    </Text>
+                  )}
+                  {product.lowest_price && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: theme.colors.primary,
+                      }}
+                    >
+                      Lowest: ${product.lowest_price.toFixed(2)}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
-            <View className="flex-row gap-2">
-              <View className="flex-1">
-                <Input
-                  label="Quantity *"
-                  placeholder="1"
-                  value={quantity}
-                  onChangeText={(value) => {
-                    setQuantity(value);
-                    setErrors((prev) => ({ ...prev, quantity: '' }));
-                  }}
-                  error={errors.quantity}
-                  icon="calculator-outline"
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View className="flex-1">
-                <Input
-                  label="Unit Price *"
-                  placeholder="0.00"
-                  value={unitPrice}
-                  onChangeText={(value) => {
-                    setUnitPrice(value);
-                    setErrors((prev) => ({ ...prev, unitPrice: '' }));
-                  }}
-                  error={errors.unitPrice}
-                  icon="cash-outline"
-                  keyboardType="decimal-pad"
-                />
+          {/* Selected Product */}
+          {selectedProduct && (
+            <View
+              style={{
+                marginTop: 12,
+                backgroundColor: `${theme.colors.primary}20`,
+                borderWidth: 1,
+                borderColor: `${theme.colors.primary}50`,
+                borderRadius: 8,
+                padding: 12,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                    <Text
+                      style={{
+                        color: theme.colors.primary,
+                        fontWeight: "600",
+                        marginLeft: 8,
+                      }}
+                    >
+                      Product Selected
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      color: theme.colors["text-primary"],
+                      fontWeight: "500",
+                    }}
+                  >
+                    {selectedProduct.name}
+                  </Text>
+                  {selectedProduct.brand && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: theme.colors["text-secondary"],
+                      }}
+                    >
+                      {selectedProduct.brand}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  onPress={handleClearProduct}
+                  style={{ padding: 4 }}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={24}
+                    color={theme.colors.primary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
+          )}
+        </Card>
 
-            <Input
-              label="Category (Optional)"
-              placeholder="e.g., Dairy, Produce"
-              value={category}
-              onChangeText={setCategory}
-              icon="list-outline"
-            />
+        {/* Item Details */}
+        <Card style={{ marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+              color: theme.colors["text-primary"],
+              marginBottom: 12,
+            }}
+          >
+            Item Details
+          </Text>
 
-            {/* Total Preview */}
-            {quantity && unitPrice && (
-              <View className="bg-gray-50 rounded-lg p-3 mt-2">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-gray-600">Total Price:</Text>
-                  <Text className="text-xl font-bold text-primary-600">
-                    ${calculateTotal()}
-                  </Text>
-                </View>
-                <Text className="text-xs text-gray-500 mt-1 text-center">
-                  {quantity} × ${unitPrice} = ${calculateTotal()}
-                </Text>
-              </View>
-            )}
-          </Card>
+          <Input
+            label="Product Name *"
+            placeholder="Enter product name"
+            value={productName}
+            onChangeText={(value) => {
+              setProductName(value);
+              setErrors((prev) => ({ ...prev, productName: "" }));
+            }}
+            error={errors.productName}
+            icon="pricetag-outline"
+          />
 
-          {/* Info Note */}
-          <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <View className="flex-row items-start">
-              <Ionicons name="information-circle" size={20} color="#0284c7" />
-              <Text className="flex-1 text-blue-800 text-sm ml-2">
-                Link this item to an existing product to enable price tracking and
-                comparisons.
-              </Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Input
+                label="Quantity *"
+                placeholder="1"
+                value={quantity}
+                onChangeText={(value) => {
+                  setQuantity(value);
+                  setErrors((prev) => ({ ...prev, quantity: "" }));
+                }}
+                error={errors.quantity}
+                icon="calculator-outline"
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Input
+                label="Unit Price *"
+                placeholder="0.00"
+                value={unitPrice}
+                onChangeText={(value) => {
+                  setUnitPrice(value);
+                  setErrors((prev) => ({ ...prev, unitPrice: "" }));
+                }}
+                error={errors.unitPrice}
+                icon="cash-outline"
+                keyboardType="decimal-pad"
+              />
             </View>
           </View>
 
-          {/* Add Button */}
-          <Button
-            title="Add Item"
-            onPress={handleAddItem}
-            loading={isSaving}
-            fullWidth
-            size="lg"
+          <Input
+            label="Category (Optional)"
+            placeholder="e.g., Dairy, Produce"
+            value={category}
+            onChangeText={setCategory}
+            icon="list-outline"
           />
 
-          {/* Cancel Button */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="py-3 items-center mt-3"
-            disabled={isSaving}
+          {/* Total Preview */}
+          {quantity && unitPrice && (
+            <View
+              style={{
+                backgroundColor: theme.colors["surface-light"],
+                borderRadius: 8,
+                padding: 12,
+                marginTop: 8,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: theme.colors["text-secondary"] }}>
+                  Total Price:
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: theme.colors.primary,
+                  }}
+                >
+                  ${calculateTotal()}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: theme.colors["text-muted"],
+                  marginTop: 4,
+                  textAlign: "center",
+                }}
+              >
+                {quantity} × ${unitPrice} = ${calculateTotal()}
+              </Text>
+            </View>
+          )}
+        </Card>
+
+        {/* Info Note */}
+        <View
+          style={{
+            backgroundColor: `${theme.colors.primary}20`,
+            borderWidth: 1,
+            borderColor: `${theme.colors.primary}50`,
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 16,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+            <Ionicons
+              name="information-circle"
+              size={20}
+              color={theme.colors.primary}
+            />
+            <Text
+              style={{
+                flex: 1,
+                color: theme.colors.primary,
+                fontSize: 14,
+                marginLeft: 8,
+              }}
+            >
+              Link this item to an existing product to enable price tracking and
+              comparisons.
+            </Text>
+          </View>
+        </View>
+
+        {/* Add Button */}
+        <Button
+          title="Add Item"
+          onPress={handleAddItem}
+          loading={isSaving}
+          fullWidth
+          size="lg"
+        />
+
+        {/* Cancel Button */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ paddingVertical: 12, alignItems: "center", marginTop: 12 }}
+          disabled={isSaving}
+        >
+          <Text
+            style={{
+              color: theme.colors["text-secondary"],
+              fontWeight: "500",
+            }}
           >
-            <Text className="text-gray-600 font-medium">Cancel</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            Cancel
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

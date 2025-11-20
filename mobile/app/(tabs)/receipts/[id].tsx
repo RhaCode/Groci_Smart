@@ -19,6 +19,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { ReceiptItemComponent } from '../../../components/receipts/ReceiptItem';
 import { ReceiptStatusBadge } from '../../../components/receipts/ReceiptStatusBadge';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ReceiptDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,6 +30,7 @@ export default function ReceiptDetailScreen() {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReprocessing, setIsReprocessing] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (id) {
@@ -122,7 +124,6 @@ export default function ReceiptDetailScreen() {
   };
 
   const handleEditItem = (itemId: number) => {
-    // Navigate to edit item screen with both receipt id and item id
     router.push({
       pathname: '/(tabs)/receipts/edit-item/[receiptId]/[itemId]',
       params: { receiptId: id, itemId: itemId.toString() },
@@ -141,7 +142,6 @@ export default function ReceiptDetailScreen() {
           onPress: async () => {
             try {
               await receiptService.deleteReceiptItem(parseInt(id), itemId);
-              // Refresh receipt data
               await fetchReceipt();
               Alert.alert('Success', 'Item deleted successfully');
             } catch (err: any) {
@@ -177,69 +177,74 @@ export default function ReceiptDetailScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView 
-        className="flex-1 p-4"
+        style={{ flex: 1, padding: 16 }}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={handleRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
         }
       >
         {/* Receipt Image */}
-        <Card className="mb-4 bg-surface">
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
           <TouchableOpacity
             onPress={() => setImageModalVisible(true)}
             activeOpacity={0.8}
           >
             <Image
               source={{ uri: receipt.receipt_image_url }}
-              className="w-full h-80 rounded-lg bg-surface-light"
+              style={{ width: '100%', height: 320, borderRadius: 8, backgroundColor: theme.colors['surface-light'] }}
               resizeMode="contain"
             />
-            <View className="absolute bottom-2 right-2 bg-black/50 rounded-full p-2">
+            <View style={{ position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 9999, padding: 8 }}>
               <Ionicons name="expand-outline" size={20} color="white" />
             </View>
           </TouchableOpacity>
         </Card>
 
         {/* Receipt Info */}
-        <Card className="mb-4 bg-surface">
-          <View className="flex-row justify-between items-start mb-3">
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-text-primary mb-1">
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 4 }}>
                 {receipt.store_name || 'Unknown Store'}
               </Text>
               {receipt.store_location && (
-                <View className="flex-row items-center">
-                  <Ionicons name="location-outline" size={16} color="#9ca3af" />
-                  <Text className="text-text-secondary ml-1">{receipt.store_location}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="location-outline" size={16} color={theme.colors['text-muted']} />
+                  <Text style={{ color: theme.colors['text-secondary'], marginLeft: 4 }}>{receipt.store_location}</Text>
                 </View>
               )}
             </View>
             <ReceiptStatusBadge status={receipt.status} size="md" />
           </View>
 
-          <View className="border-t border-border pt-3">
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-text-secondary">Date</Text>
-              <Text className="text-text-primary font-medium">
+          <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: 12 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ color: theme.colors['text-secondary'] }}>Date</Text>
+              <Text style={{ color: theme.colors['text-primary'], fontWeight: '500' }}>
                 {formatDate(receipt.purchase_date)}
               </Text>
             </View>
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-text-secondary">Items</Text>
-              <Text className="text-text-primary font-medium">{receipt.items_count}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ color: theme.colors['text-secondary'] }}>Items</Text>
+              <Text style={{ color: theme.colors['text-primary'], fontWeight: '500' }}>{receipt.items_count}</Text>
             </View>
             {receipt.tax_amount && (
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-text-secondary">Tax</Text>
-                <Text className="text-text-primary font-medium">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={{ color: theme.colors['text-secondary'] }}>Tax</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '500' }}>
                   {formatAmount(receipt.tax_amount)}
                 </Text>
               </View>
             )}
-            <View className="flex-row justify-between pt-2 border-t border-border">
-              <Text className="text-lg font-semibold text-text-primary">Total</Text>
-              <Text className="text-lg font-bold text-primary">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 8, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'] }}>Total</Text>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.primary }}>
                 {formatAmount(receipt.total_amount)}
               </Text>
             </View>
@@ -248,23 +253,23 @@ export default function ReceiptDetailScreen() {
           {/* Edit Receipt Button */}
           <TouchableOpacity
             onPress={handleEditReceipt}
-            className="mt-3 pt-3 border-t border-border flex-row items-center justify-center"
+            style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
           >
-            <Ionicons name="create-outline" size={20} color="#0ea5e9" />
-            <Text className="text-primary font-medium ml-2">Edit Receipt Details</Text>
+            <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
+            <Text style={{ color: theme.colors.primary, fontWeight: '500', marginLeft: 8 }}>Edit Receipt Details</Text>
           </TouchableOpacity>
         </Card>
 
         {/* Processing Status Messages */}
         {receipt.status === 'processing' && (
-          <View className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
-            <View className="flex-row items-start">
+          <View style={{ backgroundColor: `${theme.colors.primary}20`, borderWidth: 1, borderColor: `${theme.colors.primary}50`, borderRadius: 8, padding: 16, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
               <LoadingSpinner size="small" />
-              <View className="flex-1 ml-2">
-                <Text className="text-primary font-semibold mb-1">
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4 }}>
                   Processing Receipt
                 </Text>
-                <Text className="text-primary text-sm">
+                <Text style={{ color: theme.colors.primary, fontSize: 14 }}>
                   OCR is extracting text from your receipt. This may take a few moments.
                 </Text>
               </View>
@@ -273,22 +278,22 @@ export default function ReceiptDetailScreen() {
         )}
 
         {receipt.status === 'failed' && receipt.processing_error && (
-          <View className="bg-error/10 border border-error/30 rounded-lg p-4 mb-4">
-            <View className="flex-row items-start">
-              <Ionicons name="alert-circle" size={20} color="#ef4444" />
-              <View className="flex-1 ml-2">
-                <Text className="text-error font-semibold mb-1">
+          <View style={{ backgroundColor: `${theme.colors.error}20`, borderWidth: 1, borderColor: `${theme.colors.error}50`, borderRadius: 8, padding: 16, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <Ionicons name="alert-circle" size={20} color={theme.colors.error} />
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={{ color: theme.colors.error, fontWeight: '600', marginBottom: 4 }}>
                   Processing Failed
                 </Text>
-                <Text className="text-error text-sm mb-2">
+                <Text style={{ color: theme.colors.error, fontSize: 14, marginBottom: 8 }}>
                   {receipt.processing_error}
                 </Text>
                 <TouchableOpacity
                   onPress={handleReprocess}
                   disabled={isReprocessing}
-                  className="self-start"
+                  style={{ alignSelf: 'flex-start' }}
                 >
-                  <Text className="text-error font-semibold underline">
+                  <Text style={{ color: theme.colors.error, fontWeight: '600', textDecorationLine: 'underline' }}>
                     {isReprocessing ? 'Reprocessing...' : 'Try Again'}
                   </Text>
                 </TouchableOpacity>
@@ -298,17 +303,17 @@ export default function ReceiptDetailScreen() {
         )}
 
         {/* Items List */}
-        <Card className="mb-4 bg-surface">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-lg font-semibold text-text-primary">
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'] }}>
               Items ({receipt.items.length})
             </Text>
             <TouchableOpacity
               onPress={handleAddItem}
-              className="bg-primary/10 px-3 py-2 rounded-lg flex-row items-center"
+              style={{ backgroundColor: `${theme.colors.primary}20`, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center' }}
             >
-              <Ionicons name="add-circle-outline" size={18} color="#0ea5e9" />
-              <Text className="text-primary font-medium ml-1">Add Item</Text>
+              <Ionicons name="add-circle-outline" size={18} color={theme.colors.primary} />
+              <Text style={{ color: theme.colors.primary, fontWeight: '500', marginLeft: 4 }}>Add Item</Text>
             </TouchableOpacity>
           </View>
 
@@ -321,50 +326,50 @@ export default function ReceiptDetailScreen() {
                     showBorder={false}
                   />
                   {/* Item Actions */}
-                  <View className="flex-row gap-2 mt-2 mb-3">
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
                     <TouchableOpacity
                       onPress={() => handleEditItem(item.id)}
-                      className="flex-1 bg-surface-light border border-border rounded-lg py-2 flex-row items-center justify-center"
+                      style={{ flex: 1, backgroundColor: theme.colors['surface-light'], borderWidth: 1, borderColor: theme.colors.border, borderRadius: 8, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      <Ionicons name="create-outline" size={16} color="#64748b" />
-                      <Text className="text-text-secondary ml-1 text-sm font-medium">
+                      <Ionicons name="create-outline" size={16} color={theme.colors['text-secondary']} />
+                      <Text style={{ color: theme.colors['text-secondary'], marginLeft: 4, fontSize: 14, fontWeight: '500' }}>
                         Edit
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleDeleteItem(item.id, item.product_name)}
-                      className="flex-1 bg-error/10 border border-error/30 rounded-lg py-2 flex-row items-center justify-center"
+                      style={{ flex: 1, backgroundColor: `${theme.colors.error}20`, borderWidth: 1, borderColor: `${theme.colors.error}50`, borderRadius: 8, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                      <Text className="text-error ml-1 text-sm font-medium">
+                      <Ionicons name="trash-outline" size={16} color={theme.colors.error} />
+                      <Text style={{ color: theme.colors.error, marginLeft: 4, fontSize: 14, fontWeight: '500' }}>
                         Delete
                       </Text>
                     </TouchableOpacity>
                   </View>
                   {index < receipt.items.length - 1 && (
-                    <View className="border-b border-border mb-3" />
+                    <View style={{ borderBottomWidth: 1, borderBottomColor: theme.colors.border, marginBottom: 12 }} />
                   )}
                 </View>
               ))}
             </View>
           ) : (
-            <View className="py-8 items-center">
-              <Ionicons name="document-text-outline" size={48} color="#9ca3af" />
-              <Text className="text-text-secondary text-center mt-2">
+            <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+              <Ionicons name="document-text-outline" size={48} color={theme.colors['text-muted']} />
+              <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center', marginTop: 8 }}>
                 No items found in this receipt
               </Text>
               <TouchableOpacity
                 onPress={handleAddItem}
-                className="mt-4 bg-primary px-4 py-2 rounded-lg"
+                style={{ marginTop: 16, backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}
               >
-                <Text className="text-white font-medium">Add First Item</Text>
+                <Text style={{ color: theme.colors['text-primary'], fontWeight: '500' }}>Add First Item</Text>
               </TouchableOpacity>
             </View>
           )}
         </Card>
 
         {/* Action Buttons */}
-        <View className="space-y-2 mb-4">
+        <View style={{ gap: 8, marginBottom: 16 }}>
           {(receipt.status === 'failed' || receipt.status === 'completed') && (
             <Button
               title="Reprocess Receipt"
@@ -386,15 +391,15 @@ export default function ReceiptDetailScreen() {
 
         {/* OCR Text (Collapsible - Optional) */}
         {receipt.ocr_text && (
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-2">
+          <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 8 }}>
               Extracted Text (OCR)
             </Text>
             <ScrollView 
-              className="bg-surface-light p-3 rounded-lg max-h-40"
+              style={{ backgroundColor: theme.colors['surface-light'], padding: 12, borderRadius: 8, maxHeight: 160 }}
               nestedScrollEnabled
             >
-              <Text className="text-text-secondary text-xs font-mono">
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 12, fontFamily: 'monospace' }}>
                 {receipt.ocr_text}
               </Text>
             </ScrollView>
@@ -408,17 +413,17 @@ export default function ReceiptDetailScreen() {
         transparent={true}
         onRequestClose={() => setImageModalVisible(false)}
       >
-        <View className="flex-1 bg-black">
-          <View className="flex-1">
+        <View style={{ flex: 1, backgroundColor: 'black' }}>
+          <View style={{ flex: 1 }}>
             <TouchableOpacity
               onPress={() => setImageModalVisible(false)}
-              className="absolute top-12 right-4 z-10 bg-black/50 rounded-full p-2"
+              style={{ position: 'absolute', top: 48, right: 16, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 9999, padding: 8 }}
             >
               <Ionicons name="close" size={28} color="white" />
             </TouchableOpacity>
             <Image
               source={{ uri: receipt.receipt_image_url }}
-              className="w-full h-full"
+              style={{ width: '100%', height: '100%' }}
               resizeMode="contain"
             />
           </View>

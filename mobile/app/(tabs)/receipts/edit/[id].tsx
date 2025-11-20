@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import receiptService, { Receipt, ReceiptItem } from '../../../../services/receiptService';
@@ -18,6 +17,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { LoadingSpinner } from '../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../../context/ThemeContext';
 
 export default function EditReceiptScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,6 +25,7 @@ export default function EditReceiptScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   // Form state
   const [storeName, setStoreName] = useState('');
@@ -136,10 +137,10 @@ export default function EditReceiptScreen() {
   };
 
   const handleAddItem = () => {
-    // router.push({
-    //   pathname: '/(tabs)/receipts/add-item/[id]',
-    //   params: { id },
-    // });
+    router.push({
+      pathname: '/(tabs)/receipts/add-item/[id]',
+      params: { id },
+    });
   };
 
   if (isLoading) {
@@ -151,15 +152,20 @@ export default function EditReceiptScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <ScrollView className="flex-1 p-4">
+        <ScrollView style={{ flex: 1, padding: 16 }}>
           {/* Receipt Information */}
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card style={{ marginBottom: 16 }}>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 12 
+            }}>
               Receipt Information
             </Text>
 
@@ -198,16 +204,20 @@ export default function EditReceiptScreen() {
           </Card>
 
           {/* Items Section */}
-          <Card className="mb-4">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-lg font-semibold text-gray-800">
+          <Card style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ 
+                fontSize: 18, 
+                fontWeight: '600', 
+                color: theme.colors['text-primary'] 
+              }}>
                 Items ({items.length})
               </Text>
               <TouchableOpacity
                 onPress={handleAddItem}
-                className="bg-primary-600 rounded-full p-2"
+                style={{ backgroundColor: theme.colors.primary, borderRadius: 9999, padding: 8 }}
               >
-                <Ionicons name="add" size={20} color="white" />
+                <Ionicons name="add" size={20} color={theme.colors['text-primary']} />
               </TouchableOpacity>
             </View>
 
@@ -222,7 +232,11 @@ export default function EditReceiptScreen() {
             ))}
 
             {items.length === 0 && (
-              <Text className="text-gray-600 text-center py-4">
+              <Text style={{ 
+                color: theme.colors['text-secondary'], 
+                textAlign: 'center', 
+                paddingVertical: 16 
+              }}>
                 No items yet. Tap + to add items.
               </Text>
             )}
@@ -240,14 +254,19 @@ export default function EditReceiptScreen() {
           {/* Cancel Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            className="py-3 items-center mt-3"
+            style={{ paddingVertical: 12, alignItems: 'center', marginTop: 12 }}
             disabled={isSaving}
           >
-            <Text className="text-gray-600 font-medium">Cancel</Text>
+            <Text style={{ 
+              color: theme.colors['text-secondary'], 
+              fontWeight: '500' 
+            }}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -269,6 +288,7 @@ const EditableReceiptItem: React.FC<EditableReceiptItemProps> = ({
   const [productName, setProductName] = useState(item.product_name);
   const [quantity, setQuantity] = useState(item.quantity);
   const [unitPrice, setUnitPrice] = useState(item.unit_price);
+  const { theme } = useTheme();
 
   const handleSave = () => {
     if (productName !== item.product_name) {
@@ -289,15 +309,19 @@ const EditableReceiptItem: React.FC<EditableReceiptItemProps> = ({
 
   if (isEditing) {
     return (
-      <View className={`py-3 ${showBorder ? 'border-b border-gray-200' : ''}`}>
+      <View style={{ 
+        paddingVertical: 12, 
+        borderBottomWidth: showBorder ? 1 : 0, 
+        borderBottomColor: showBorder ? theme.colors.border : 'transparent' 
+      }}>
         <Input
           placeholder="Product name"
           value={productName}
           onChangeText={setProductName}
-          containerClassName="mb-2"
+          containerStyle={{ marginBottom: 8 }}
         />
-        <View className="flex-row gap-2 mb-2">
-          <View className="flex-1">
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+          <View style={{ flex: 1 }}>
             <Input
               placeholder="Quantity"
               value={quantity}
@@ -305,7 +329,7 @@ const EditableReceiptItem: React.FC<EditableReceiptItemProps> = ({
               keyboardType="decimal-pad"
             />
           </View>
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             <Input
               placeholder="Unit Price"
               value={unitPrice}
@@ -314,14 +338,14 @@ const EditableReceiptItem: React.FC<EditableReceiptItemProps> = ({
             />
           </View>
         </View>
-        <View className="flex-row gap-2">
-          <Button title="Save" onPress={handleSave} size="sm" className="flex-1" />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button title="Save" onPress={handleSave} size="sm" style={{ flex: 1 }} />
           <Button
             title="Cancel"
             onPress={() => setIsEditing(false)}
             variant="outline"
             size="sm"
-            className="flex-1"
+            style={{ flex: 1 }}
           />
         </View>
       </View>
@@ -329,23 +353,40 @@ const EditableReceiptItem: React.FC<EditableReceiptItemProps> = ({
   }
 
   return (
-    <View className={`py-3 ${showBorder ? 'border-b border-gray-200' : ''}`}>
-      <View className="flex-row justify-between items-start mb-2">
-        <Text className="flex-1 text-gray-800 font-medium">{item.product_name}</Text>
-        <Text className="text-gray-800 font-semibold ml-2">
+    <View style={{ 
+      paddingVertical: 12, 
+      borderBottomWidth: showBorder ? 1 : 0, 
+      borderBottomColor: showBorder ? theme.colors.border : 'transparent' 
+    }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <Text style={{ 
+          flex: 1, 
+          color: theme.colors['text-primary'], 
+          fontWeight: '500' 
+        }}>
+          {item.product_name}
+        </Text>
+        <Text style={{ 
+          color: theme.colors['text-primary'], 
+          fontWeight: '600', 
+          marginLeft: 8 
+        }}>
           {formatAmount(item.total_price)}
         </Text>
       </View>
-      <View className="flex-row justify-between items-center">
-        <Text className="text-sm text-gray-600">
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text style={{ 
+          fontSize: 14, 
+          color: theme.colors['text-secondary'] 
+        }}>
           Qty: {parseFloat(item.quantity)} × {formatAmount(item.unit_price)}
         </Text>
-        <View className="flex-row gap-2">
+        <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity onPress={() => setIsEditing(true)}>
-            <Ionicons name="pencil" size={20} color="#0284c7" />
+            <Ionicons name="pencil" size={20} color={theme.colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => onDelete(item.id)}>
-            <Ionicons name="trash" size={20} color="#dc2626" />
+            <Ionicons name="trash" size={20} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
       </View>

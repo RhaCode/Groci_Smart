@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface FilterValues {
   status?: string;
@@ -26,6 +27,7 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
   initialFilters = {},
 }) => {
   const [filters, setFilters] = useState<FilterValues>(initialFilters);
+  const { theme } = useTheme();
 
   const statusOptions = [
     { label: 'All', value: '' },
@@ -55,37 +57,61 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-surface rounded-t-3xl max-h-[80%]">
+      <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' }}>
+        <View style={{ 
+          backgroundColor: theme.colors.surface, 
+          borderTopLeftRadius: 24, 
+          borderTopRightRadius: 24, 
+          maxHeight: '80%' 
+        }}>
           {/* Header */}
-          <View className="flex-row justify-between items-center p-4 border-b border-border">
-            <Text className="text-xl font-bold text-text-primary">Filter Receipts</Text>
-            <TouchableOpacity onPress={onClose} className="p-2">
-              <Ionicons name="close" size={24} color="#9ca3af" />
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            padding: 16, 
+            borderBottomWidth: 1, 
+            borderBottomColor: theme.colors.border 
+          }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors['text-primary'] }}>
+              Filter Receipts
+            </Text>
+            <TouchableOpacity onPress={onClose} style={{ padding: 8 }}>
+              <Ionicons name="close" size={24} color={theme.colors['text-muted']} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="p-4">
+          <ScrollView style={{ padding: 16 }}>
             {/* Status Filter */}
-            <View className="mb-4">
-              <Text className="text-text-primary font-semibold mb-2">Status</Text>
-              <View className="flex-row flex-wrap gap-2">
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', marginBottom: 8 }}>
+                Status
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {statusOptions.map((option) => (
                   <TouchableOpacity
                     key={option.value}
                     onPress={() => updateFilter('status', option.value)}
-                    className={`px-4 py-2 rounded-full border-2 ${
-                      filters.status === option.value
-                        ? 'bg-primary border-primary'
-                        : 'bg-surface-light border-border-light'
-                    }`}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 9999,
+                      borderWidth: 2,
+                      backgroundColor: filters.status === option.value 
+                        ? theme.colors.primary 
+                        : theme.colors['surface-light'],
+                      borderColor: filters.status === option.value 
+                        ? theme.colors.primary 
+                        : theme.colors['border-light'],
+                    }}
                   >
                     <Text
-                      className={`font-medium ${
-                        filters.status === option.value
-                          ? 'text-text-primary'
-                          : 'text-text-secondary'
-                      }`}
+                      style={{
+                        fontWeight: '500',
+                        color: filters.status === option.value
+                          ? theme.colors['text-primary']
+                          : theme.colors['text-secondary'],
+                      }}
                     >
                       {option.label}
                     </Text>
@@ -104,10 +130,12 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
             />
 
             {/* Date Range */}
-            <View className="mb-4">
-              <Text className="text-text-primary font-semibold mb-2">Date Range</Text>
-              <View className="flex-row gap-2">
-                <View className="flex-1">
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', marginBottom: 8 }}>
+                Date Range
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flex: 1 }}>
                   <Input
                     placeholder="Start date"
                     value={filters.startDate || ''}
@@ -115,7 +143,7 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                     icon="calendar-outline"
                   />
                 </View>
-                <View className="flex-1">
+                <View style={{ flex: 1 }}>
                   <Input
                     placeholder="End date"
                     value={filters.endDate || ''}
@@ -124,15 +152,20 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                   />
                 </View>
               </View>
-              <Text className="text-xs text-text-muted mt-1">
+              <Text style={{ fontSize: 12, color: theme.colors['text-muted'], marginTop: 4 }}>
                 Format: YYYY-MM-DD
               </Text>
             </View>
 
             {/* Active Filters Count */}
             {Object.values(filters).filter(Boolean).length > 0 && (
-              <View className="bg-primary/20 rounded-lg p-3 mb-4">
-                <Text className="text-primary text-sm">
+              <View style={{ 
+                backgroundColor: `${theme.colors.primary}20`, 
+                borderRadius: 8, 
+                padding: 12, 
+                marginBottom: 16 
+              }}>
+                <Text style={{ color: theme.colors.primary, fontSize: 14 }}>
                   {Object.values(filters).filter(Boolean).length} filter(s) active
                 </Text>
               </View>
@@ -140,19 +173,19 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
           </ScrollView>
 
           {/* Action Buttons */}
-          <View className="p-8 border-t border-border">
-            <View className="flex-row gap-2">
+          <View style={{ padding: 32, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
               <Button
                 title="Reset"
                 onPress={handleReset}
                 variant="outline"
-                className="flex-1"
+                style={{ flex: 1 }}
               />
               <Button
                 title="Apply Filters"
                 onPress={handleApply}
                 variant="primary"
-                className="flex-1"
+                style={{ flex: 1 }}
               />
             </View>
           </View>

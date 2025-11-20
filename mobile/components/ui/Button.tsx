@@ -1,6 +1,7 @@
 // mobile/components/ui/Button.tsx
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, ViewStyle, TextStyle } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -17,68 +18,103 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   fullWidth = false,
   disabled,
-  className,
+  style,
   ...props
 }) => {
-  const getVariantClasses = () => {
+  const { theme } = useTheme();
+
+  const getVariantStyles = (): ViewStyle => {
+    const baseStyle: ViewStyle = {
+      borderRadius: 8,
+      borderWidth: variant === 'outline' ? 2 : 1,
+    };
+
     switch (variant) {
       case 'primary':
-        return 'bg-primary border border-primary active:bg-primary-dark';
+        return {
+          ...baseStyle,
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.primary,
+        };
       case 'secondary':
-        return 'bg-accent border border-accent active:bg-accent-dark';
+        return {
+          ...baseStyle,
+          backgroundColor: theme.colors.accent,
+          borderColor: theme.colors.accent,
+        };
       case 'outline':
-        return 'bg-transparent border-2 border-border-light active:bg-surface-light';
+        return {
+          ...baseStyle,
+          backgroundColor: 'transparent',
+          borderColor: theme.colors['border-light'],
+        };
       case 'danger':
-        return 'bg-error border border-error active:bg-error/80';
+        return {
+          ...baseStyle,
+          backgroundColor: theme.colors.error,
+          borderColor: theme.colors.error,
+        };
       default:
-        return 'bg-primary border border-primary active:bg-primary-dark';
+        return {
+          ...baseStyle,
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.primary,
+        };
     }
   };
 
-  const getSizeClasses = () => {
+  const getSizeStyles = (): ViewStyle => {
     switch (size) {
       case 'sm':
-        return 'py-2 px-4';
+        return { paddingVertical: 8, paddingHorizontal: 16 };
       case 'md':
-        return 'py-3 px-6';
+        return { paddingVertical: 12, paddingHorizontal: 24 };
       case 'lg':
-        return 'py-4 px-8';
+        return { paddingVertical: 16, paddingHorizontal: 32 };
       default:
-        return 'py-3 px-6';
+        return { paddingVertical: 12, paddingHorizontal: 24 };
     }
   };
 
-  const getTextClasses = () => {
-    const baseClasses = 'font-semibold text-center';
-    
-    const colorClasses = {
-      primary: 'text-text-primary',
-      secondary: 'text-text-primary',
-      outline: 'text-text-primary',
-      danger: 'text-text-primary',
+  const getTextStyles = (): TextStyle => {
+    const baseStyle: TextStyle = {
+      fontWeight: '600',
+      textAlign: 'center',
+    };
+
+    const colorStyles: TextStyle = {
+      primary: { color: theme.colors['text-primary'] },
+      secondary: { color: theme.colors['text-primary'] },
+      outline: { color: theme.colors['text-primary'] },
+      danger: { color: theme.colors['text-primary'] },
     }[variant];
-    
-    const sizeClasses = {
-      sm: 'text-sm',
-      md: 'text-base',
-      lg: 'text-lg',
+
+    const sizeStyles: TextStyle = {
+      sm: { fontSize: 14 },
+      md: { fontSize: 16 },
+      lg: { fontSize: 18 },
     }[size];
 
-    return `${baseClasses} ${colorClasses} ${sizeClasses}`;
+    return { ...baseStyle, ...colorStyles, ...sizeStyles };
+  };
+
+  const buttonStyles: ViewStyle = {
+    ...getVariantStyles(),
+    ...getSizeStyles(),
+    width: fullWidth ? '100%' : undefined,
+    opacity: disabled || loading ? 0.5 : 1,
   };
 
   return (
     <TouchableOpacity
-      className={`rounded-lg ${getVariantClasses()} ${getSizeClasses()} ${
-        fullWidth ? 'w-full' : ''
-      } ${disabled || loading ? 'opacity-50' : ''} ${className || ''}`}
+      style={[buttonStyles, style]}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color="#f9fafb" />
+        <ActivityIndicator color={theme.colors['text-primary']} />
       ) : (
-        <Text className={getTextClasses()}>{title}</Text>
+        <Text style={getTextStyles()}>{title}</Text>
       )}
     </TouchableOpacity>
   );

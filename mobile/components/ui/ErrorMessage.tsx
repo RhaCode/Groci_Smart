@@ -1,8 +1,9 @@
 // mobile/components/ui/ErrorMessage.tsx
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from './Button';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ErrorMessageProps {
   message: string;
@@ -10,15 +11,43 @@ interface ErrorMessageProps {
 }
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onRetry }) => {
+  const { theme } = useTheme();
+
+  const containerStyle: ViewStyle = {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  };
+
+  const iconContainerStyle: ViewStyle = {
+    backgroundColor: `${theme.colors.error}20`,
+    borderRadius: 9999,
+    padding: 16,
+    marginBottom: 16,
+  };
+
   return (
-    <View className="flex-1 justify-center items-center p-4">
-      <View className="bg-error-50 rounded-full p-4 mb-4">
-        <Ionicons name="alert-circle-outline" size={48} color="#dc2626" />
+    <View style={containerStyle}>
+      <View style={iconContainerStyle}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
       </View>
-      <Text className="text-gray-800 text-lg font-semibold text-center mb-2">
+      <Text style={{ 
+        color: theme.colors['text-primary'], 
+        fontSize: 18, 
+        fontWeight: '600', 
+        textAlign: 'center', 
+        marginBottom: 8 
+      }}>
         Oops! Something went wrong
       </Text>
-      <Text className="text-gray-600 text-center mb-4">{message}</Text>
+      <Text style={{ 
+        color: theme.colors['text-secondary'], 
+        textAlign: 'center', 
+        marginBottom: 16 
+      }}>
+        {message}
+      </Text>
       {onRetry && (
         <Button title="Try Again" onPress={onRetry} size="sm" />
       )}

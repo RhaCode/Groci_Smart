@@ -1,7 +1,8 @@
 // mobile/components/receipts/ReceiptStatusBadge.tsx
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ReceiptStatusBadgeProps {
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -12,33 +13,35 @@ export const ReceiptStatusBadge: React.FC<ReceiptStatusBadgeProps> = ({
   status,
   size = 'md',
 }) => {
+  const { theme } = useTheme();
+
   const getStatusConfig = () => {
     switch (status) {
       case 'completed':
         return {
-          bg: 'bg-success/20',
-          text: 'text-success',
+          backgroundColor: `${theme.colors.success}20`,
+          color: theme.colors.success,
           icon: 'checkmark-circle',
           label: 'Completed',
         };
       case 'processing':
         return {
-          bg: 'bg-warning/20',
-          text: 'text-warning',
+          backgroundColor: `${theme.colors.warning}20`,
+          color: theme.colors.warning,
           icon: 'time',
           label: 'Processing',
         };
       case 'failed':
         return {
-          bg: 'bg-error/20',
-          text: 'text-error',
+          backgroundColor: `${theme.colors.error}20`,
+          color: theme.colors.error,
           icon: 'close-circle',
           label: 'Failed',
         };
       default:
         return {
-          bg: 'bg-text-muted/20',
-          text: 'text-text-muted',
+          backgroundColor: `${theme.colors['text-muted']}20`,
+          color: theme.colors['text-muted'],
           icon: 'ellipse',
           label: 'Pending',
         };
@@ -46,16 +49,17 @@ export const ReceiptStatusBadge: React.FC<ReceiptStatusBadgeProps> = ({
   };
 
   const config = getStatusConfig();
-  const sizeClasses = {
-    sm: 'px-2 py-1',
-    md: 'px-3 py-1.5',
-    lg: 'px-4 py-2',
+  
+  const sizeStyles = {
+    sm: { paddingHorizontal: 8, paddingVertical: 4 },
+    md: { paddingHorizontal: 12, paddingVertical: 6 },
+    lg: { paddingHorizontal: 16, paddingVertical: 8 },
   }[size];
 
-  const textSizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
+  const textSizeStyles = {
+    sm: { fontSize: 12 },
+    md: { fontSize: 14 },
+    lg: { fontSize: 16 },
   }[size];
 
   const iconSize = {
@@ -64,12 +68,25 @@ export const ReceiptStatusBadge: React.FC<ReceiptStatusBadgeProps> = ({
     lg: 20,
   }[size];
 
+  const containerStyle: ViewStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 9999,
+    backgroundColor: config.backgroundColor,
+    ...sizeStyles,
+  };
+
+  const textStyle: TextStyle = {
+    color: config.color,
+    fontWeight: '500',
+    marginLeft: 4,
+    ...textSizeStyles,
+  };
+
   return (
-    <View
-      className={`flex-row items-center rounded-full ${config.bg} ${sizeClasses}`}
-    >
-      <Ionicons name={config.icon as any} size={iconSize} color="currentColor" />
-      <Text className={`${config.text} ${textSizeClasses} font-medium ml-1`}>
+    <View style={containerStyle}>
+      <Ionicons name={config.icon as any} size={iconSize} color={config.color} />
+      <Text style={textStyle}>
         {config.label}
       </Text>
     </View>

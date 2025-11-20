@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ReceiptListItem } from '../../services/receiptService';
 import { Card } from '../ui/Card';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ReceiptCardProps {
   receipt: ReceiptListItem;
@@ -11,6 +12,8 @@ interface ReceiptCardProps {
 }
 
 export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) => {
+  const { theme } = useTheme();
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'No date';
     const date = new Date(dateString);
@@ -28,13 +31,25 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-success/20 text-success';
+        return {
+          backgroundColor: `${theme.colors.success}20`,
+          color: theme.colors.success
+        };
       case 'processing':
-        return 'bg-warning/20 text-warning';
+        return {
+          backgroundColor: `${theme.colors.warning}20`,
+          color: theme.colors.warning
+        };
       case 'failed':
-        return 'bg-error/20 text-error';
+        return {
+          backgroundColor: `${theme.colors.error}20`,
+          color: theme.colors.error
+        };
       default:
-        return 'bg-text-muted/20 text-text-muted';
+        return {
+          backgroundColor: `${theme.colors['text-muted']}20`,
+          color: theme.colors['text-muted']
+        };
     }
   };
 
@@ -51,70 +66,112 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
     }
   };
 
+  const statusColors = getStatusColor(receipt.status);
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card className="flex-row bg-surface">
+      <Card style={{ backgroundColor: theme.colors.surface, flexDirection: 'row' }}>
         {/* Receipt Thumbnail */}
-        <View className="mr-3">
+        <View style={{ marginRight: 12 }}>
           {receipt.receipt_thumbnail_url ? (
             <Image
               source={{ uri: receipt.receipt_thumbnail_url }}
-              className="w-20 h-24 rounded-lg bg-surface-light"
+              style={{ 
+                width: 80, 
+                height: 96, 
+                borderRadius: 8, 
+                backgroundColor: theme.colors['surface-light'] 
+              }}
               resizeMode="cover"
             />
           ) : (
-            <View className="w-20 h-24 rounded-lg bg-surface-light items-center justify-center">
-              <Ionicons name="receipt-outline" size={32} color="#9ca3af" />
+            <View style={{ 
+              width: 80, 
+              height: 96, 
+              borderRadius: 8, 
+              backgroundColor: theme.colors['surface-light'],
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Ionicons name="receipt-outline" size={32} color={theme.colors['text-muted']} />
             </View>
           )}
         </View>
 
         {/* Receipt Info */}
-        <View className="flex-1">
+        <View style={{ flex: 1 }}>
           {/* Store Name */}
-          <Text className="text-base font-semibold text-text-primary mb-1" numberOfLines={1}>
+          <Text 
+            style={{ 
+              fontSize: 16, 
+              fontWeight: '600', 
+              color: theme.colors['text-primary'], 
+              marginBottom: 4 
+            }} 
+            numberOfLines={1}
+          >
             {receipt.store_name || 'Unknown Store'}
           </Text>
 
           {/* Store Location */}
           {receipt.store_location && (
-            <View className="flex-row items-center mb-1">
-              <Ionicons name="location-outline" size={14} color="#9ca3af" />
-              <Text className="text-sm text-text-secondary ml-1" numberOfLines={1}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Ionicons name="location-outline" size={14} color={theme.colors['text-muted']} />
+              <Text 
+                style={{ 
+                  fontSize: 14, 
+                  color: theme.colors['text-secondary'], 
+                  marginLeft: 4 
+                }} 
+                numberOfLines={1}
+              >
                 {receipt.store_location}
               </Text>
             </View>
           )}
 
           {/* Date and Items Count */}
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="calendar-outline" size={14} color="#9ca3af" />
-            <Text className="text-sm text-text-secondary ml-1">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Ionicons name="calendar-outline" size={14} color={theme.colors['text-muted']} />
+            <Text style={{ fontSize: 14, color: theme.colors['text-secondary'], marginLeft: 4 }}>
               {formatDate(receipt.purchase_date)}
             </Text>
-            <Text className="text-text-muted mx-2">•</Text>
-            <Ionicons name="list-outline" size={14} color="#9ca3af" />
-            <Text className="text-sm text-text-secondary ml-1">
+            <Text style={{ color: theme.colors['text-muted'], marginHorizontal: 8 }}>•</Text>
+            <Ionicons name="list-outline" size={14} color={theme.colors['text-muted']} />
+            <Text style={{ fontSize: 14, color: theme.colors['text-secondary'], marginLeft: 4 }}>
               {receipt.items_count} {receipt.items_count === 1 ? 'item' : 'items'}
             </Text>
           </View>
 
           {/* Amount and Status */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-primary">
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.primary }}>
               {formatAmount(receipt.total_amount)}
             </Text>
             <View
-              className={`flex-row items-center px-2 py-1 rounded-full ${getStatusColor(
-                receipt.status
-              )}`}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 9999,
+                backgroundColor: statusColors.backgroundColor,
+              }}
             >
               <Ionicons
                 name={getStatusIcon(receipt.status) as any}
                 size={12}
-                color="currentColor"
+                color={statusColors.color}
               />
-              <Text className="text-xs font-medium ml-1 capitalize">
+              <Text 
+                style={{ 
+                  fontSize: 12, 
+                  fontWeight: '500', 
+                  marginLeft: 4, 
+                  color: statusColors.color,
+                  textTransform: 'capitalize'
+                }}
+              >
                 {receipt.status}
               </Text>
             </View>

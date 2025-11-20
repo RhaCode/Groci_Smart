@@ -17,6 +17,7 @@ import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ReceiptsScreen() {
   const [receipts, setReceipts] = useState<ReceiptListItem[]>([]);
@@ -31,6 +32,8 @@ export default function ReceiptsScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
   const [activeFilterCount, setActiveFilterCount] = useState(0);
+
+  const { theme } = useTheme();
 
   // Fetch receipts
   const fetchReceipts = async (pageNum: number = 1, refresh: boolean = false) => {
@@ -138,14 +141,14 @@ export default function ReceiptsScreen() {
     // Check if empty due to filters
     if (activeFilterCount > 0 || searchQuery) {
       return (
-        <View className="flex-1 justify-center items-center p-6">
-          <View className="bg-surface-light rounded-full p-6 mb-4">
-            <Ionicons name="search-outline" size={64} color="#9ca3af" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: theme.colors['surface-light'], borderRadius: 9999, padding: 24, marginBottom: 16 }}>
+            <Ionicons name="search-outline" size={64} color={theme.colors['text-muted']} />
           </View>
-          <Text className="text-xl font-bold text-text-primary mb-2">
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 8 }}>
             No Receipts Found
           </Text>
-          <Text className="text-text-secondary text-center mb-6">
+          <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center', marginBottom: 24 }}>
             Try adjusting your search or filters
           </Text>
           <Button
@@ -159,14 +162,14 @@ export default function ReceiptsScreen() {
     }
 
     return (
-      <View className="flex-1 justify-center items-center p-6">
-        <View className="bg-primary/20 rounded-full p-6 mb-4">
-          <Ionicons name="receipt-outline" size={64} color="#0ea5e9" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <View style={{ backgroundColor: `${theme.colors.primary}20`, borderRadius: 9999, padding: 24, marginBottom: 16 }}>
+          <Ionicons name="receipt-outline" size={64} color={theme.colors.primary} />
         </View>
-        <Text className="text-xl font-bold text-text-primary mb-2">
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 8 }}>
           No Receipts Yet
         </Text>
-        <Text className="text-text-secondary text-center mb-6">
+        <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center', marginBottom: 24 }}>
           Start by uploading your first receipt to track your grocery spending
         </Text>
         <Button
@@ -183,8 +186,8 @@ export default function ReceiptsScreen() {
     if (!hasMore) return null;
 
     return (
-      <View className="py-4">
-        <ActivityIndicator size="small" color="#0ea5e9" />
+      <View style={{ paddingVertical: 16 }}>
+        <ActivityIndicator size="small" color={theme.colors.primary} />
       </View>
     );
   };
@@ -198,53 +201,73 @@ export default function ReceiptsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
-      <View className="flex-1">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={{ flex: 1 }}>
         {/* Header with Search and Filters - Removed title since layout handles it */}
-        <View className="px-4 py-3 bg-surface border-b border-border">
+        <View style={{ 
+          paddingHorizontal: 16, 
+          paddingVertical: 12, 
+          backgroundColor: theme.colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border
+        }}>
           {/* Receipt count and upload button */}
-          <View className="flex-row justify-between items-center mb-3">
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <View>
-              <Text className="text-text-secondary text-sm">
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 14 }}>
                 {receipts.length} {receipts.length === 1 ? 'receipt' : 'receipts'}
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleUploadPress}
-              className="bg-primary rounded-full p-3"
+              style={{ backgroundColor: theme.colors.primary, borderRadius: 9999, padding: 12 }}
             >
               <Ionicons name="camera" size={24} color="#ffffff" />
             </TouchableOpacity>
           </View>
 
           {/* Search Bar */}
-          <View className="flex-row gap-2">
-            <View className="flex-1">
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1 }}>
               <Input
                 placeholder="Search by store name..."
                 value={searchQuery}
                 onChangeText={handleSearch}
                 icon="search-outline"
-                containerClassName="mb-0"
+                containerStyle={{ marginBottom: 0 }}
               />
             </View>
             <TouchableOpacity
               onPress={() => setShowFilters(true)}
-              className={`items-center justify-center px-4 border-2 rounded-lg ${
-                activeFilterCount > 0
-                  ? 'bg-primary border-primary'
-                  : 'bg-surface border-border-light'
-              }`}
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 16,
+                borderWidth: 2,
+                borderRadius: 8,
+                backgroundColor: activeFilterCount > 0 ? theme.colors.primary : theme.colors.surface,
+                borderColor: activeFilterCount > 0 ? theme.colors.primary : theme.colors['border-light'],
+              }}
             >
-              <View className="relative">
+              <View style={{ position: 'relative' }}>
                 <Ionicons
                   name="filter"
                   size={24}
-                  color={activeFilterCount > 0 ? '#f9fafb' : '#9ca3af'}
+                  color={activeFilterCount > 0 ? theme.colors['text-primary'] : theme.colors['text-muted']}
                 />
                 {activeFilterCount > 0 && (
-                  <View className="absolute -top-1 -right-1 bg-text-primary rounded-full w-4 h-4 items-center justify-center">
-                    <Text className="text-primary text-xs font-bold">
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    backgroundColor: theme.colors['text-primary'],
+                    borderRadius: 9999,
+                    width: 16,
+                    height: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Text style={{ color: theme.colors.primary, fontSize: 10, fontWeight: 'bold' }}>
                       {activeFilterCount}
                     </Text>
                   </View>
@@ -256,33 +279,58 @@ export default function ReceiptsScreen() {
 
         {/* Active Filters Chips */}
         {(activeFilterCount > 0 || searchQuery) && (
-          <View className="px-4 py-2 bg-surface-light">
-            <View className="flex-row flex-wrap gap-2">
+          <View style={{ 
+            paddingHorizontal: 16, 
+            paddingVertical: 8, 
+            backgroundColor: theme.colors['surface-light'] 
+          }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {searchQuery && (
-                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary text-sm mr-1">
+                <View style={{ 
+                  backgroundColor: `${theme.colors.primary}20`, 
+                  paddingHorizontal: 12, 
+                  paddingVertical: 4, 
+                  borderRadius: 9999, 
+                  flexDirection: 'row', 
+                  alignItems: 'center' 
+                }}>
+                  <Text style={{ color: theme.colors.primary, fontSize: 14, marginRight: 4 }}>
                     Store: {searchQuery}
                   </Text>
                   <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
+                    <Ionicons name="close-circle" size={16} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
               )}
               {filters.status && (
-                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary text-sm mr-1 capitalize">
+                <View style={{ 
+                  backgroundColor: `${theme.colors.primary}20`, 
+                  paddingHorizontal: 12, 
+                  paddingVertical: 4, 
+                  borderRadius: 9999, 
+                  flexDirection: 'row', 
+                  alignItems: 'center' 
+                }}>
+                  <Text style={{ color: theme.colors.primary, fontSize: 14, marginRight: 4, textTransform: 'capitalize' }}>
                     {filters.status}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setFilters((prev) => ({ ...prev, status: '' }))}
                   >
-                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
+                    <Ionicons name="close-circle" size={16} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
               )}
               {(filters.startDate || filters.endDate) && (
-                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary text-sm mr-1">
+                <View style={{ 
+                  backgroundColor: `${theme.colors.primary}20`, 
+                  paddingHorizontal: 12, 
+                  paddingVertical: 4, 
+                  borderRadius: 9999, 
+                  flexDirection: 'row', 
+                  alignItems: 'center' 
+                }}>
+                  <Text style={{ color: theme.colors.primary, fontSize: 14, marginRight: 4 }}>
                     Date Range
                   </Text>
                   <TouchableOpacity
@@ -294,15 +342,15 @@ export default function ReceiptsScreen() {
                       }))
                     }
                   >
-                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
+                    <Ionicons name="close-circle" size={16} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
               )}
               <TouchableOpacity
                 onPress={clearFilters}
-                className="px-3 py-1 rounded-full flex-row items-center"
+                style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 9999, flexDirection: 'row', alignItems: 'center' }}
               >
-                <Text className="text-text-secondary text-sm font-medium">Clear all</Text>
+                <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, fontWeight: '500' }}>Clear all</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -316,15 +364,15 @@ export default function ReceiptsScreen() {
             <ReceiptCard receipt={item} onPress={() => handleReceiptPress(item.id)} />
           )}
           contentContainerStyle={{ padding: 16 }}
-          ItemSeparatorComponent={() => <View className="h-3" />}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={renderFooter}
           refreshControl={
             <RefreshControl 
               refreshing={isRefreshing} 
               onRefresh={onRefresh}
-              colors={['#0ea5e9']}
-              tintColor="#0ea5e9"
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
             />
           }
           onEndReached={loadMore}
