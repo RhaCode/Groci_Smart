@@ -1,17 +1,24 @@
 // mobile/app/(tabs)/home/index.tsx
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../context/AuthContext';
 import { Card } from '../../../components/ui/Card';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { StatsCard, TopStoreCard } from '../../../components/receipts/ReceiptStats';
-import { useReceiptStats } from '@/components/receipts/ReceiptStats';
+import { useReceiptStats } from '@/hooks/useReceipts';
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { stats, isLoading } = useReceiptStats();
+  const { stats, isLoading, refetch } = useReceiptStats();
+
+  // Refresh stats when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, []) // Remove refetch from dependencies since it's now stable
+  );
 
   if (isLoading) {
     return <LoadingSpinner message="Loading dashboard..." fullScreen />;
@@ -41,14 +48,14 @@ export default function HomeScreen() {
             iconColor="#0ea5e9"
             iconBg="bg-primary/20"
             label="Total Receipts"
-            value={stats?.total_receipts.toString() || '0'}
+            value={stats?.total_receipts?.toString() || '0'}
           />
           <StatsCard
             icon="cash-outline"
             iconColor="#22c55e"
             iconBg="bg-success/20"
             label="Total Spent"
-            value={`${formatAmount(stats?.total_spent || 0)}`}
+            value={`$${formatAmount(stats?.total_spent || 0)}`}
           />
         </View>
 
@@ -59,7 +66,7 @@ export default function HomeScreen() {
             iconColor="#d946ef"
             iconBg="bg-accent/20"
             label="This Month"
-            value={stats?.receipts_this_month.toString() || '0'}
+            value={stats?.receipts_this_month?.toString() || '0'}
             subtitle="receipts"
           />
           <StatsCard
@@ -67,12 +74,12 @@ export default function HomeScreen() {
             iconColor="#f59e0b"
             iconBg="bg-warning/20"
             label="Month Spending"
-            value={`${formatAmount(stats?.spent_this_month || 0)}`}
+            value={`$${formatAmount(stats?.spent_this_month || 0)}`}
           />
         </View>
 
         {/* Top Stores */}
-        {stats && stats.top_stores.length > 0 && (
+        {stats && stats.top_stores && stats.top_stores.length > 0 && (
           <Card className="mb-4 bg-surface">
             <Text className="text-lg font-semibold text-text-primary mb-3">
               Top Stores
@@ -90,7 +97,7 @@ export default function HomeScreen() {
         )}
 
         {/* Recent Receipts */}
-        {stats && stats.recent_receipts.length > 0 && (
+        {stats && stats.recent_receipts && stats.recent_receipts.length > 0 && (
           <Card className="mb-4 bg-surface">
             <View className="flex-row justify-between items-center mb-3">
               <Text className="text-lg font-semibold text-text-primary">
