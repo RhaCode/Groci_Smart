@@ -25,7 +25,7 @@ from .serializers import (
     ProcessReceiptSerializer,
     ReceiptStatsSerializer
 )
-# from .services.ocr_service import AzureOCRService
+from .services.ocr_service import AzureOCRService
 from .services.receipt_parser import ReceiptParser
 from products.models import Store, Product, PriceHistory
 
@@ -82,12 +82,12 @@ def upload_receipt(request):
         
         # Trigger OCR processing asynchronously (in a real app, use Celery)
         # For now, we'll process it immediately
-        # try:
-        #     process_receipt_ocr(receipt)
-        # except Exception as e:
-        #     receipt.status = 'failed'
-        #     receipt.processing_error = str(e)
-        #     receipt.save()
+        try:
+            AzureOCRService.process_receipt_ocr(receipt)
+        except Exception as e:
+            receipt.status = 'failed'
+            receipt.processing_error = str(e)
+            receipt.save()
         
         return Response(
             ReceiptSerializer(receipt, context={'request': request}).data,
@@ -134,7 +134,7 @@ def reprocess_receipt(request, receipt_id):
         receipt.processing_error = ''
         receipt.save()
         
-        # process_receipt_ocr(receipt)
+        AzureOCRService.process_receipt_ocr(receipt)
         
         return Response(
             ReceiptSerializer(receipt, context={'request': request}).data,

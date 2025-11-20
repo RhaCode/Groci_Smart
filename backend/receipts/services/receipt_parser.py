@@ -143,7 +143,7 @@ class ReceiptParser:
         """Extract line items from receipt text"""
         items = []
         lines = text.split('\n')
-        
+        print("Parsing items from lines:", lines)
         for line in lines:
             # Skip lines that are too short or contain keywords we want to ignore
             if len(line.strip()) < 5:
@@ -157,7 +157,7 @@ class ReceiptParser:
             item = self.parse_item_line(line)
             if item:
                 items.append(item)
-        
+        print("Extracted items:", items)
         return items
     
     def parse_item_line(self, line):
