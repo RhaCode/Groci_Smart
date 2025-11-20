@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -183,119 +184,137 @@ export default function UploadReceiptScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, padding: 16, backgroundColor: theme.colors.background }}>
-      {/* Image Preview Section */}
-      <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
-          Receipt Image
-        </Text>
-
-        {imageUri ? (
-          <View>
-            <Image
-              source={{ uri: imageUri }}
-              style={{ width: '100%', height: 384, borderRadius: 8, backgroundColor: theme.colors['surface-light'] }}
-              resizeMode="contain"
-            />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
-              <Button
-                title="Change Image"
-                onPress={showImageOptions}
-                variant="outline"
-                size="sm"
-                style={{ flex: 1, marginRight: 8 }}
-              />
-              <Button
-                title="Remove"
-                onPress={removeImage}
-                variant="danger"
-                size="sm"
-                style={{ flex: 1, marginLeft: 8 }}
-              />
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            onPress={showImageOptions}
-            style={{ 
-              borderWidth: 2, 
-              borderStyle: 'dashed', 
-              borderColor: theme.colors['border-light'], 
-              borderRadius: 8, 
-              padding: 32, 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              backgroundColor: theme.colors['surface-light'] 
-            }}
-          >
-            <View style={{ backgroundColor: `${theme.colors.primary}20`, borderRadius: 9999, padding: 16, marginBottom: 12 }}>
-              <Ionicons name="camera-outline" size={48} color={theme.colors.primary} />
-            </View>
-            <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', textAlign: 'center', marginBottom: 4 }}>
-              Add Receipt Image
-            </Text>
-            <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, textAlign: 'center' }}>
-              Take a photo or choose from gallery
-            </Text>
-          </TouchableOpacity>
-        )}
-      </Card>
-
-      {/* Optional Information Section */}
-      <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
-          Receipt Details (Optional)
-        </Text>
-        <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 16 }}>
-          These details will be auto-extracted from the image, but you can
-          provide them manually if needed.
-        </Text>
-
-        <Input
-          label="Store Name"
-          placeholder="e.g., Walmart, Target"
-          value={storeName}
-          onChangeText={setStoreName}
-          icon="storefront-outline"
-        />
-
-        <Input
-          label="Store Location"
-          placeholder="e.g., Downtown Mall"
-          value={storeLocation}
-          onChangeText={setStoreLocation}
-          icon="location-outline"
-        />
-
-        <Input
-          label="Purchase Date"
-          placeholder="YYYY-MM-DD"
-          value={purchaseDate}
-          onChangeText={setPurchaseDate}
-          icon="calendar-outline"
-          keyboardType="default"
-        />
-      </Card>
-
-      {/* Upload Button */}
-      <Button
-        title="Upload Receipt"
-        onPress={handleUpload}
-        loading={isUploading}
-        disabled={!imageUri}
-        fullWidth
-        size="lg"
-        variant="primary"
-      />
-
-      {/* Cancel Button */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={{ paddingVertical: 12, alignItems: 'center', marginTop: 40 }}
-        disabled={isUploading}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <ScrollView 
+        style={{ flex: 1, padding: 16 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={{ color: theme.colors['text-secondary'], fontWeight: '500' }}>Cancel</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Image Preview Section */}
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
+            Receipt Image
+          </Text>
+
+          {imageUri ? (
+            <View>
+              <Image
+                source={{ uri: imageUri }}
+                style={{ width: '100%', height: 384, borderRadius: 8, backgroundColor: theme.colors['surface-light'] }}
+                resizeMode="contain"
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                <Button
+                  title="Change Image"
+                  onPress={showImageOptions}
+                  variant="outline"
+                  size="sm"
+                  style={{ flex: 1, marginRight: 8 }}
+                />
+                <Button
+                  title="Remove"
+                  onPress={removeImage}
+                  variant="danger"
+                  size="sm"
+                  style={{ flex: 1, marginLeft: 8 }}
+                />
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={showImageOptions}
+              style={{ 
+                borderWidth: 2, 
+                borderStyle: 'dashed', 
+                borderColor: theme.colors['border-light'], 
+                borderRadius: 8, 
+                padding: 32, 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                backgroundColor: theme.colors['surface-light'] 
+              }}
+            >
+              <View style={{ backgroundColor: `${theme.colors.primary}20`, borderRadius: 9999, padding: 16, marginBottom: 12 }}>
+                <Ionicons name="camera-outline" size={48} color={theme.colors.primary} />
+              </View>
+              <Text style={{ color: theme.colors['text-primary'], fontWeight: '600', textAlign: 'center', marginBottom: 4 }}>
+                Add Receipt Image
+              </Text>
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, textAlign: 'center' }}>
+                Take a photo or choose from gallery
+              </Text>
+            </TouchableOpacity>
+          )}
+        </Card>
+
+        {/* Optional Information Section */}
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 24 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
+            Receipt Details (Optional)
+          </Text>
+          <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 16 }}>
+            These details will be auto-extracted from the image, but you can
+            provide them manually if needed.
+          </Text>
+
+          <Input
+            label="Store Name"
+            placeholder="e.g., Walmart, Target"
+            value={storeName}
+            onChangeText={setStoreName}
+            icon="storefront-outline"
+          />
+
+          <Input
+            label="Store Location"
+            placeholder="e.g., Downtown Mall"
+            value={storeLocation}
+            onChangeText={setStoreLocation}
+            icon="location-outline"
+          />
+
+          <Input
+            label="Purchase Date"
+            placeholder="YYYY-MM-DD"
+            value={purchaseDate}
+            onChangeText={setPurchaseDate}
+            icon="calendar-outline"
+            keyboardType="default"
+          />
+        </Card>
+
+        {/* Action Buttons Container */}
+        <View style={{ gap: 12 }}>
+          {/* Upload Button */}
+          <Button
+            title="Upload Receipt"
+            onPress={handleUpload}
+            loading={isUploading}
+            disabled={!imageUri}
+            fullWidth
+            size="lg"
+            variant="primary"
+          />
+
+          {/* Cancel Button */}
+          <Button
+            title="Cancel"
+            onPress={() => router.back()}
+            disabled={isUploading}
+            fullWidth
+            size="lg"
+            variant="outline"
+          />
+        </View>
+
+        {/* Extra bottom spacing for safety */}
+        <View style={{ height: 20 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
