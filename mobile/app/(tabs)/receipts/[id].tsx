@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
-  Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,9 +24,11 @@ export default function ReceiptDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReprocessing, setIsReprocessing] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -46,6 +48,12 @@ export default function ReceiptDetailScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchReceipt();
+    setIsRefreshing(false);
   };
 
   const handleDelete = () => {
@@ -83,18 +91,61 @@ export default function ReceiptDetailScreen() {
   const handleReprocess = async () => {
     Alert.alert(
       'Reprocess Receipt',
-      'This will re-run OCR on the receipt image. Continue?',
+      'This will re-run OCR on the receipt image and may update extracted data. Continue?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Reprocess',
           onPress: async () => {
             try {
+              setIsReprocessing(true);
               const updated = await receiptService.reprocessReceipt(parseInt(id));
               setReceipt(updated);
-              Alert.alert('Success', 'Receipt is being reprocessed');
+              Alert.alert('Success', 'Receipt is being reprocessed. Pull down to refresh and see updates.');
             } catch (err: any) {
               Alert.alert('Error', err.message || 'Failed to reprocess receipt');
+            } finally {
+              setIsReprocessing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditReceipt = () => {
+    router.push(`/(tabs)/receipts/edit/${id}`);
+  };
+
+  const handleAddItem = () => {
+    router.push(`/(tabs)/receipts/add-item/${id}`);
+  };
+
+  const handleEditItem = (itemId: number) => {
+    // Navigate to edit item screen with both receipt id and item id
+    router.push({
+      pathname: '/(tabs)/receipts/edit-item/[receiptId]/[itemId]',
+      params: { receiptId: id, itemId: itemId.toString() },
+    });
+  };
+
+  const handleDeleteItem = (itemId: number, itemName: string) => {
+    Alert.alert(
+      'Delete Item',
+      `Remove "${itemName}" from this receipt?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await receiptService.deleteReceiptItem(parseInt(id), itemId);
+              // Refresh receipt data
+              await fetchReceipt();
+              Alert.alert('Success', 'Item deleted successfully');
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete item');
             }
           },
         },
@@ -127,7 +178,12 @@ export default function ReceiptDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <ScrollView className="flex-1 p-4">
+      <ScrollView 
+        className="flex-1 p-4"
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Receipt Image */}
         <Card className="mb-4 bg-surface">
           <TouchableOpacity
@@ -188,31 +244,34 @@ export default function ReceiptDetailScreen() {
               </Text>
             </View>
           </View>
+
+          {/* Edit Receipt Button */}
+          <TouchableOpacity
+            onPress={handleEditReceipt}
+            className="mt-3 pt-3 border-t border-border flex-row items-center justify-center"
+          >
+            <Ionicons name="create-outline" size={20} color="#0ea5e9" />
+            <Text className="text-primary font-medium ml-2">Edit Receipt Details</Text>
+          </TouchableOpacity>
         </Card>
 
-        {/* Items List */}
-        <Card className="mb-4 bg-surface">
-          <Text className="text-lg font-semibold text-text-primary mb-3">
-            Items ({receipt.items.length})
-          </Text>
-          {receipt.items.length > 0 ? (
-            <View>
-              {receipt.items.map((item, index) => (
-                <ReceiptItemComponent
-                  key={item.id}
-                  item={item}
-                  showBorder={index < receipt.items.length - 1}
-                />
-              ))}
+        {/* Processing Status Messages */}
+        {receipt.status === 'processing' && (
+          <View className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
+            <View className="flex-row items-start">
+              <LoadingSpinner size="small" />
+              <View className="flex-1 ml-2">
+                <Text className="text-primary font-semibold mb-1">
+                  Processing Receipt
+                </Text>
+                <Text className="text-primary text-sm">
+                  OCR is extracting text from your receipt. This may take a few moments.
+                </Text>
+              </View>
             </View>
-          ) : (
-            <Text className="text-text-secondary text-center py-4">
-              No items found in this receipt
-            </Text>
-          )}
-        </Card>
+          </View>
+        )}
 
-        {/* Processing Error */}
         {receipt.status === 'failed' && receipt.processing_error && (
           <View className="bg-error/10 border border-error/30 rounded-lg p-4 mb-4">
             <View className="flex-row items-start">
@@ -221,24 +280,101 @@ export default function ReceiptDetailScreen() {
                 <Text className="text-error font-semibold mb-1">
                   Processing Failed
                 </Text>
-                <Text className="text-error text-sm">
+                <Text className="text-error text-sm mb-2">
                   {receipt.processing_error}
                 </Text>
+                <TouchableOpacity
+                  onPress={handleReprocess}
+                  disabled={isReprocessing}
+                  className="self-start"
+                >
+                  <Text className="text-error font-semibold underline">
+                    {isReprocessing ? 'Reprocessing...' : 'Try Again'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         )}
 
+        {/* Items List */}
+        <Card className="mb-4 bg-surface">
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-lg font-semibold text-text-primary">
+              Items ({receipt.items.length})
+            </Text>
+            <TouchableOpacity
+              onPress={handleAddItem}
+              className="bg-primary/10 px-3 py-2 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="add-circle-outline" size={18} color="#0ea5e9" />
+              <Text className="text-primary font-medium ml-1">Add Item</Text>
+            </TouchableOpacity>
+          </View>
+
+          {receipt.items.length > 0 ? (
+            <View>
+              {receipt.items.map((item, index) => (
+                <View key={item.id}>
+                  <ReceiptItemComponent
+                    item={item}
+                    showBorder={false}
+                  />
+                  {/* Item Actions */}
+                  <View className="flex-row gap-2 mt-2 mb-3">
+                    <TouchableOpacity
+                      onPress={() => handleEditItem(item.id)}
+                      className="flex-1 bg-surface-light border border-border rounded-lg py-2 flex-row items-center justify-center"
+                    >
+                      <Ionicons name="create-outline" size={16} color="#64748b" />
+                      <Text className="text-text-secondary ml-1 text-sm font-medium">
+                        Edit
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteItem(item.id, item.product_name)}
+                      className="flex-1 bg-error/10 border border-error/30 rounded-lg py-2 flex-row items-center justify-center"
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                      <Text className="text-error ml-1 text-sm font-medium">
+                        Delete
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {index < receipt.items.length - 1 && (
+                    <View className="border-b border-border mb-3" />
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View className="py-8 items-center">
+              <Ionicons name="document-text-outline" size={48} color="#9ca3af" />
+              <Text className="text-text-secondary text-center mt-2">
+                No items found in this receipt
+              </Text>
+              <TouchableOpacity
+                onPress={handleAddItem}
+                className="mt-4 bg-primary px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-medium">Add First Item</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </Card>
+
         {/* Action Buttons */}
         <View className="space-y-2 mb-4">
-          {receipt.status === 'failed' && (
+          {(receipt.status === 'failed' || receipt.status === 'completed') && (
             <Button
               title="Reprocess Receipt"
               onPress={handleReprocess}
-              variant="primary"
+              loading={isReprocessing}
+              variant="secondary"
               fullWidth
             />
           )}
+          
           <Button
             title="Delete Receipt"
             onPress={handleDelete}
@@ -247,6 +383,23 @@ export default function ReceiptDetailScreen() {
             fullWidth
           />
         </View>
+
+        {/* OCR Text (Collapsible - Optional) */}
+        {receipt.ocr_text && (
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-2">
+              Extracted Text (OCR)
+            </Text>
+            <ScrollView 
+              className="bg-surface-light p-3 rounded-lg max-h-40"
+              nestedScrollEnabled
+            >
+              <Text className="text-text-secondary text-xs font-mono">
+                {receipt.ocr_text}
+              </Text>
+            </ScrollView>
+          </Card>
+        )}
       </ScrollView>
 
       {/* Full Image Modal */}
