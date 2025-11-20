@@ -22,15 +22,15 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   subtitle,
 }) => {
   return (
-    <Card className="flex-1">
+    <Card className="flex-1 bg-surface">
       <View className="flex-row items-center mb-2">
         <View className={`${iconBg} rounded-full p-2 mr-2`}>
           <Ionicons name={icon} size={20} color={iconColor} />
         </View>
-        <Text className="text-gray-600 text-sm">{label}</Text>
+        <Text className="text-text-secondary text-sm">{label}</Text>
       </View>
-      <Text className="text-2xl font-bold text-gray-800 mb-1">{value}</Text>
-      {subtitle && <Text className="text-xs text-gray-500">{subtitle}</Text>}
+      <Text className="text-2xl font-bold text-text-primary mb-1">{value}</Text>
+      {subtitle && <Text className="text-xs text-text-muted">{subtitle}</Text>}
     </Card>
   );
 };
@@ -51,13 +51,13 @@ export const TopStoreCard: React.FC<TopStoreCardProps> = ({
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-warning/20 text-warning';
       case 2:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-text-muted/20 text-text-muted';
       case 3:
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-accent-light/20 text-accent-light';
       default:
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-primary/20 text-primary-light';
     }
   };
 
@@ -75,7 +75,7 @@ export const TopStoreCard: React.FC<TopStoreCardProps> = ({
   };
 
   return (
-    <View className="flex-row items-center py-3 border-b border-gray-200">
+    <View className="flex-row items-center py-3 border-b border-border last:border-b-0">
       <View
         className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${getRankColor(
           rank
@@ -84,12 +84,12 @@ export const TopStoreCard: React.FC<TopStoreCardProps> = ({
         <Ionicons name={getRankIcon(rank) as any} size={20} color="currentColor" />
       </View>
       <View className="flex-1">
-        <Text className="text-gray-800 font-semibold">{storeName}</Text>
-        <Text className="text-sm text-gray-600">
+        <Text className="text-text-primary font-semibold">{storeName}</Text>
+        <Text className="text-sm text-text-secondary">
           {receiptCount} {receiptCount === 1 ? 'receipt' : 'receipts'}
         </Text>
       </View>
-      <Text className="text-primary-600 font-bold">${totalSpent}</Text>
+      <Text className="text-primary font-bold">${totalSpent}</Text>
     </View>
   );
 };

@@ -56,19 +56,19 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl max-h-[80%]">
+        <View className="bg-surface rounded-t-3xl max-h-[80%]">
           {/* Header */}
-          <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-            <Text className="text-xl font-bold text-gray-800">Filter Receipts</Text>
+          <View className="flex-row justify-between items-center p-4 border-b border-border">
+            <Text className="text-xl font-bold text-text-primary">Filter Receipts</Text>
             <TouchableOpacity onPress={onClose} className="p-2">
-              <Ionicons name="close" size={24} color="#6b7280" />
+              <Ionicons name="close" size={24} color="#9ca3af" />
             </TouchableOpacity>
           </View>
 
           <ScrollView className="p-4">
             {/* Status Filter */}
             <View className="mb-4">
-              <Text className="text-gray-700 font-semibold mb-2">Status</Text>
+              <Text className="text-text-primary font-semibold mb-2">Status</Text>
               <View className="flex-row flex-wrap gap-2">
                 {statusOptions.map((option) => (
                   <TouchableOpacity
@@ -76,15 +76,15 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                     onPress={() => updateFilter('status', option.value)}
                     className={`px-4 py-2 rounded-full border-2 ${
                       filters.status === option.value
-                        ? 'bg-primary-600 border-primary-600'
-                        : 'bg-white border-gray-300'
+                        ? 'bg-primary border-primary'
+                        : 'bg-surface-light border-border-light'
                     }`}
                   >
                     <Text
                       className={`font-medium ${
                         filters.status === option.value
-                          ? 'text-white'
-                          : 'text-gray-700'
+                          ? 'text-text-primary'
+                          : 'text-text-secondary'
                       }`}
                     >
                       {option.label}
@@ -105,7 +105,7 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
 
             {/* Date Range */}
             <View className="mb-4">
-              <Text className="text-gray-700 font-semibold mb-2">Date Range</Text>
+              <Text className="text-text-primary font-semibold mb-2">Date Range</Text>
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <Input
@@ -124,15 +124,15 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                   />
                 </View>
               </View>
-              <Text className="text-xs text-gray-500 mt-1">
+              <Text className="text-xs text-text-muted mt-1">
                 Format: YYYY-MM-DD
               </Text>
             </View>
 
             {/* Active Filters Count */}
             {Object.values(filters).filter(Boolean).length > 0 && (
-              <View className="bg-primary-50 rounded-lg p-3 mb-4">
-                <Text className="text-primary-700 text-sm">
+              <View className="bg-primary/20 rounded-lg p-3 mb-4">
+                <Text className="text-primary text-sm">
                   {Object.values(filters).filter(Boolean).length} filter(s) active
                 </Text>
               </View>
@@ -140,7 +140,7 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
           </ScrollView>
 
           {/* Action Buttons */}
-          <View className="p-4 border-t border-gray-200">
+          <View className="p-8 border-t border-border">
             <View className="flex-row gap-2">
               <Button
                 title="Reset"
@@ -151,6 +151,7 @@ export const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
               <Button
                 title="Apply Filters"
                 onPress={handleApply}
+                variant="primary"
                 className="flex-1"
               />
             </View>

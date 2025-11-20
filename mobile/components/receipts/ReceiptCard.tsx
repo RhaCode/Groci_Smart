@@ -28,13 +28,13 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-success-100 text-success-700';
+        return 'bg-success/20 text-success';
       case 'processing':
-        return 'bg-warning-100 text-warning-700';
+        return 'bg-warning/20 text-warning';
       case 'failed':
-        return 'bg-error-100 text-error-700';
+        return 'bg-error/20 text-error';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-text-muted/20 text-text-muted';
     }
   };
 
@@ -53,17 +53,17 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card className="flex-row">
+      <Card className="flex-row bg-surface">
         {/* Receipt Thumbnail */}
         <View className="mr-3">
           {receipt.receipt_thumbnail_url ? (
             <Image
               source={{ uri: receipt.receipt_thumbnail_url }}
-              className="w-20 h-24 rounded-lg bg-gray-200"
+              className="w-20 h-24 rounded-lg bg-surface-light"
               resizeMode="cover"
             />
           ) : (
-            <View className="w-20 h-24 rounded-lg bg-gray-200 items-center justify-center">
+            <View className="w-20 h-24 rounded-lg bg-surface-light items-center justify-center">
               <Ionicons name="receipt-outline" size={32} color="#9ca3af" />
             </View>
           )}
@@ -72,15 +72,15 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
         {/* Receipt Info */}
         <View className="flex-1">
           {/* Store Name */}
-          <Text className="text-base font-semibold text-gray-800 mb-1" numberOfLines={1}>
+          <Text className="text-base font-semibold text-text-primary mb-1" numberOfLines={1}>
             {receipt.store_name || 'Unknown Store'}
           </Text>
 
           {/* Store Location */}
           {receipt.store_location && (
             <View className="flex-row items-center mb-1">
-              <Ionicons name="location-outline" size={14} color="#6b7280" />
-              <Text className="text-sm text-gray-600 ml-1" numberOfLines={1}>
+              <Ionicons name="location-outline" size={14} color="#9ca3af" />
+              <Text className="text-sm text-text-secondary ml-1" numberOfLines={1}>
                 {receipt.store_location}
               </Text>
             </View>
@@ -88,20 +88,20 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onPress }) =>
 
           {/* Date and Items Count */}
           <View className="flex-row items-center mb-2">
-            <Ionicons name="calendar-outline" size={14} color="#6b7280" />
-            <Text className="text-sm text-gray-600 ml-1">
+            <Ionicons name="calendar-outline" size={14} color="#9ca3af" />
+            <Text className="text-sm text-text-secondary ml-1">
               {formatDate(receipt.purchase_date)}
             </Text>
-            <Text className="text-gray-400 mx-2">•</Text>
-            <Ionicons name="list-outline" size={14} color="#6b7280" />
-            <Text className="text-sm text-gray-600 ml-1">
+            <Text className="text-text-muted mx-2">•</Text>
+            <Ionicons name="list-outline" size={14} color="#9ca3af" />
+            <Text className="text-sm text-text-secondary ml-1">
               {receipt.items_count} {receipt.items_count === 1 ? 'item' : 'items'}
             </Text>
           </View>
 
           {/* Amount and Status */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-primary-600">
+            <Text className="text-lg font-bold text-primary">
               {formatAmount(receipt.total_amount)}
             </Text>
             <View

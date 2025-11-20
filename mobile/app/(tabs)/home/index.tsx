@@ -1,7 +1,6 @@
 // mobile/app/(tabs)/home/index.tsx
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../context/AuthContext';
@@ -24,14 +23,13 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1 p-4">
+      <ScrollView className="flex-1 p-4 bg-background">
         {/* Welcome Header */}
         <View className="mb-6">
-          <Text className="text-2xl font-bold text-gray-800">
+          <Text className="text-2xl font-bold text-text-primary">
             Welcome back, {user?.first_name || user?.username}! 👋
           </Text>
-          <Text className="text-gray-600 mt-1">
+          <Text className="text-text-secondary mt-1">
             Here's your grocery overview
           </Text>
         </View>
@@ -40,15 +38,15 @@ export default function HomeScreen() {
         <View className="flex-row gap-3 mb-4">
           <StatsCard
             icon="receipt-outline"
-            iconColor="#0284c7"
-            iconBg="bg-primary-100"
+            iconColor="#0ea5e9"
+            iconBg="bg-primary/20"
             label="Total Receipts"
             value={stats?.total_receipts.toString() || '0'}
           />
           <StatsCard
             icon="cash-outline"
             iconColor="#22c55e"
-            iconBg="bg-success-100"
+            iconBg="bg-success/20"
             label="Total Spent"
             value={`${formatAmount(stats?.total_spent || 0)}`}
           />
@@ -59,7 +57,7 @@ export default function HomeScreen() {
           <StatsCard
             icon="calendar-outline"
             iconColor="#d946ef"
-            iconBg="bg-secondary-100"
+            iconBg="bg-accent/20"
             label="This Month"
             value={stats?.receipts_this_month.toString() || '0'}
             subtitle="receipts"
@@ -67,7 +65,7 @@ export default function HomeScreen() {
           <StatsCard
             icon="trending-up-outline"
             iconColor="#f59e0b"
-            iconBg="bg-warning-100"
+            iconBg="bg-warning/20"
             label="Month Spending"
             value={`${formatAmount(stats?.spent_this_month || 0)}`}
           />
@@ -75,8 +73,8 @@ export default function HomeScreen() {
 
         {/* Top Stores */}
         {stats && stats.top_stores.length > 0 && (
-          <Card className="mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-3">
               Top Stores
             </Text>
             {stats.top_stores.map((store, index) => (
@@ -93,30 +91,30 @@ export default function HomeScreen() {
 
         {/* Recent Receipts */}
         {stats && stats.recent_receipts.length > 0 && (
-          <Card className="mb-4">
+          <Card className="mb-4 bg-surface">
             <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-lg font-semibold text-gray-800">
+              <Text className="text-lg font-semibold text-text-primary">
                 Recent Receipts
               </Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/receipts')}>
-                <Text className="text-primary-600 font-medium">View All</Text>
+                <Text className="text-primary font-medium">View All</Text>
               </TouchableOpacity>
             </View>
             {stats.recent_receipts.map((receipt) => (
               <TouchableOpacity
                 key={receipt.id}
                 onPress={() => router.push(`/(tabs)/receipts/${receipt.id}`)}
-                className="flex-row justify-between items-center py-3 border-b border-gray-200"
+                className="flex-row justify-between items-center py-3 border-b border-border"
               >
                 <View className="flex-1">
-                  <Text className="text-gray-800 font-medium">
+                  <Text className="text-text-primary font-medium">
                     {receipt.store_name}
                   </Text>
-                  <Text className="text-sm text-gray-600">
+                  <Text className="text-sm text-text-secondary">
                     {new Date(receipt.created_at).toLocaleDateString()}
                   </Text>
                 </View>
-                <Text className="text-primary-600 font-bold">
+                <Text className="text-primary font-bold">
                   ${formatAmount(receipt.total_amount)}
                 </Text>
               </TouchableOpacity>
@@ -125,36 +123,35 @@ export default function HomeScreen() {
         )}
 
         {/* Quick Actions */}
-        <Card>
-          <Text className="text-lg font-semibold text-gray-800 mb-3">
+        <Card className="bg-surface">
+          <Text className="text-lg font-semibold text-text-primary mb-3">
             Quick Actions
           </Text>
           <View className="flex-row gap-3">
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/receipts/upload')}
-              className="flex-1 bg-primary-50 border border-primary-200 rounded-lg p-4 items-center"
+              className="flex-1 bg-primary/10 border border-primary/30 rounded-lg p-4 items-center"
             >
-              <View className="bg-primary-600 rounded-full p-3 mb-2">
-                <Ionicons name="camera" size={24} color="white" />
+              <View className="bg-primary rounded-full p-3 mb-2">
+                <Ionicons name="camera" size={24} color="#f9fafb" />
               </View>
-              <Text className="text-primary-800 font-medium text-center">
+              <Text className="text-text-primary font-medium text-center">
                 Scan Receipt
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/lists/create')}
-              className="flex-1 bg-secondary-50 border border-secondary-200 rounded-lg p-4 items-center"
+              className="flex-1 bg-accent/10 border border-accent/30 rounded-lg p-4 items-center"
             >
-              <View className="bg-secondary-600 rounded-full p-3 mb-2">
-                <Ionicons name="list" size={24} color="white" />
+              <View className="bg-accent rounded-full p-3 mb-2">
+                <Ionicons name="list" size={24} color="#f9fafb" />
               </View>
-              <Text className="text-secondary-800 font-medium text-center">
+              <Text className="text-text-primary font-medium text-center">
                 New List
               </Text>
             </TouchableOpacity>
           </View>
         </Card>
       </ScrollView>
-    </SafeAreaView>
   );
 }

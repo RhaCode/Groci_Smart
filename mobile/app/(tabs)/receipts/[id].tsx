@@ -10,7 +10,6 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import receiptService, { Receipt } from '../../../services/receiptService';
@@ -127,17 +126,17 @@ export default function ReceiptDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background">
       <ScrollView className="flex-1 p-4">
         {/* Receipt Image */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-surface">
           <TouchableOpacity
             onPress={() => setImageModalVisible(true)}
             activeOpacity={0.8}
           >
             <Image
               source={{ uri: receipt.receipt_image_url }}
-              className="w-full h-80 rounded-lg bg-gray-200"
+              className="w-full h-80 rounded-lg bg-surface-light"
               resizeMode="contain"
             />
             <View className="absolute bottom-2 right-2 bg-black/50 rounded-full p-2">
@@ -147,44 +146,44 @@ export default function ReceiptDetailScreen() {
         </Card>
 
         {/* Receipt Info */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-surface">
           <View className="flex-row justify-between items-start mb-3">
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-gray-800 mb-1">
+              <Text className="text-2xl font-bold text-text-primary mb-1">
                 {receipt.store_name || 'Unknown Store'}
               </Text>
               {receipt.store_location && (
                 <View className="flex-row items-center">
-                  <Ionicons name="location-outline" size={16} color="#6b7280" />
-                  <Text className="text-gray-600 ml-1">{receipt.store_location}</Text>
+                  <Ionicons name="location-outline" size={16} color="#9ca3af" />
+                  <Text className="text-text-secondary ml-1">{receipt.store_location}</Text>
                 </View>
               )}
             </View>
             <ReceiptStatusBadge status={receipt.status} size="md" />
           </View>
 
-          <View className="border-t border-gray-200 pt-3">
+          <View className="border-t border-border pt-3">
             <View className="flex-row justify-between mb-2">
-              <Text className="text-gray-600">Date</Text>
-              <Text className="text-gray-800 font-medium">
+              <Text className="text-text-secondary">Date</Text>
+              <Text className="text-text-primary font-medium">
                 {formatDate(receipt.purchase_date)}
               </Text>
             </View>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-gray-600">Items</Text>
-              <Text className="text-gray-800 font-medium">{receipt.items_count}</Text>
+              <Text className="text-text-secondary">Items</Text>
+              <Text className="text-text-primary font-medium">{receipt.items_count}</Text>
             </View>
             {receipt.tax_amount && (
               <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-600">Tax</Text>
-                <Text className="text-gray-800 font-medium">
+                <Text className="text-text-secondary">Tax</Text>
+                <Text className="text-text-primary font-medium">
                   {formatAmount(receipt.tax_amount)}
                 </Text>
               </View>
             )}
-            <View className="flex-row justify-between pt-2 border-t border-gray-200">
-              <Text className="text-lg font-semibold text-gray-800">Total</Text>
-              <Text className="text-lg font-bold text-primary-600">
+            <View className="flex-row justify-between pt-2 border-t border-border">
+              <Text className="text-lg font-semibold text-text-primary">Total</Text>
+              <Text className="text-lg font-bold text-primary">
                 {formatAmount(receipt.total_amount)}
               </Text>
             </View>
@@ -192,8 +191,8 @@ export default function ReceiptDetailScreen() {
         </Card>
 
         {/* Items List */}
-        <Card className="mb-4">
-          <Text className="text-lg font-semibold text-gray-800 mb-3">
+        <Card className="mb-4 bg-surface">
+          <Text className="text-lg font-semibold text-text-primary mb-3">
             Items ({receipt.items.length})
           </Text>
           {receipt.items.length > 0 ? (
@@ -207,7 +206,7 @@ export default function ReceiptDetailScreen() {
               ))}
             </View>
           ) : (
-            <Text className="text-gray-600 text-center py-4">
+            <Text className="text-text-secondary text-center py-4">
               No items found in this receipt
             </Text>
           )}
@@ -215,14 +214,14 @@ export default function ReceiptDetailScreen() {
 
         {/* Processing Error */}
         {receipt.status === 'failed' && receipt.processing_error && (
-          <View className="bg-error-50 border border-error-200 rounded-lg p-4 mb-4">
+          <View className="bg-error/10 border border-error/30 rounded-lg p-4 mb-4">
             <View className="flex-row items-start">
-              <Ionicons name="alert-circle" size={20} color="#dc2626" />
+              <Ionicons name="alert-circle" size={20} color="#ef4444" />
               <View className="flex-1 ml-2">
-                <Text className="text-error-900 font-semibold mb-1">
+                <Text className="text-error font-semibold mb-1">
                   Processing Failed
                 </Text>
-                <Text className="text-error-700 text-sm">
+                <Text className="text-error text-sm">
                   {receipt.processing_error}
                 </Text>
               </View>
@@ -257,7 +256,7 @@ export default function ReceiptDetailScreen() {
         onRequestClose={() => setImageModalVisible(false)}
       >
         <View className="flex-1 bg-black">
-          <SafeAreaView className="flex-1">
+          <View className="flex-1">
             <TouchableOpacity
               onPress={() => setImageModalVisible(false)}
               className="absolute top-12 right-4 z-10 bg-black/50 rounded-full p-2"
@@ -269,9 +268,9 @@ export default function ReceiptDetailScreen() {
               className="w-full h-full"
               resizeMode="contain"
             />
-          </SafeAreaView>
+          </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }

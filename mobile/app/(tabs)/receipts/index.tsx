@@ -8,7 +8,6 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import receiptService, { ReceiptListItem } from '../../../services/receiptService';
@@ -140,13 +139,13 @@ export default function ReceiptsScreen() {
     if (activeFilterCount > 0 || searchQuery) {
       return (
         <View className="flex-1 justify-center items-center p-6">
-          <View className="bg-gray-100 rounded-full p-6 mb-4">
-            <Ionicons name="search-outline" size={64} color="#6b7280" />
+          <View className="bg-surface-light rounded-full p-6 mb-4">
+            <Ionicons name="search-outline" size={64} color="#9ca3af" />
           </View>
-          <Text className="text-xl font-bold text-gray-800 mb-2">
+          <Text className="text-xl font-bold text-text-primary mb-2">
             No Receipts Found
           </Text>
-          <Text className="text-gray-600 text-center mb-6">
+          <Text className="text-text-secondary text-center mb-6">
             Try adjusting your search or filters
           </Text>
           <Button
@@ -161,18 +160,19 @@ export default function ReceiptsScreen() {
 
     return (
       <View className="flex-1 justify-center items-center p-6">
-        <View className="bg-primary-100 rounded-full p-6 mb-4">
-          <Ionicons name="receipt-outline" size={64} color="#0284c7" />
+        <View className="bg-primary/20 rounded-full p-6 mb-4">
+          <Ionicons name="receipt-outline" size={64} color="#0ea5e9" />
         </View>
-        <Text className="text-xl font-bold text-gray-800 mb-2">
+        <Text className="text-xl font-bold text-text-primary mb-2">
           No Receipts Yet
         </Text>
-        <Text className="text-gray-600 text-center mb-6">
+        <Text className="text-text-secondary text-center mb-6">
           Start by uploading your first receipt to track your grocery spending
         </Text>
         <Button
           title="Upload Receipt"
           onPress={handleUploadPress}
+          variant="primary"
         />
       </View>
     );
@@ -184,7 +184,7 @@ export default function ReceiptsScreen() {
 
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#0284c7" />
+        <ActivityIndicator size="small" color="#0ea5e9" />
       </View>
     );
   };
@@ -198,22 +198,22 @@ export default function ReceiptsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1 bg-background">
       <View className="flex-1">
-        {/* Header with Search and Filters */}
-        <View className="px-4 py-3 bg-white border-b border-gray-200">
+        {/* Header with Search and Filters - Removed title since layout handles it */}
+        <View className="px-4 py-3 bg-surface border-b border-border">
+          {/* Receipt count and upload button */}
           <View className="flex-row justify-between items-center mb-3">
             <View>
-              <Text className="text-2xl font-bold text-gray-800">Receipts</Text>
-              <Text className="text-gray-600 text-sm mt-1">
+              <Text className="text-text-secondary text-sm">
                 {receipts.length} {receipts.length === 1 ? 'receipt' : 'receipts'}
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleUploadPress}
-              className="bg-primary-600 rounded-full p-3"
+              className="bg-primary rounded-full p-3"
             >
-              <Ionicons name="add" size={24} color="white" />
+              <Ionicons name="add" size={24} color="#f9fafb" />
             </TouchableOpacity>
           </View>
 
@@ -232,19 +232,19 @@ export default function ReceiptsScreen() {
               onPress={() => setShowFilters(true)}
               className={`items-center justify-center px-4 border-2 rounded-lg ${
                 activeFilterCount > 0
-                  ? 'bg-primary-600 border-primary-600'
-                  : 'bg-white border-gray-300'
+                  ? 'bg-primary border-primary'
+                  : 'bg-surface border-border-light'
               }`}
             >
               <View className="relative">
                 <Ionicons
                   name="filter"
                   size={24}
-                  color={activeFilterCount > 0 ? 'white' : '#6b7280'}
+                  color={activeFilterCount > 0 ? '#f9fafb' : '#9ca3af'}
                 />
                 {activeFilterCount > 0 && (
-                  <View className="absolute -top-1 -right-1 bg-white rounded-full w-4 h-4 items-center justify-center">
-                    <Text className="text-primary-600 text-xs font-bold">
+                  <View className="absolute -top-1 -right-1 bg-text-primary rounded-full w-4 h-4 items-center justify-center">
+                    <Text className="text-primary text-xs font-bold">
                       {activeFilterCount}
                     </Text>
                   </View>
@@ -256,33 +256,33 @@ export default function ReceiptsScreen() {
 
         {/* Active Filters Chips */}
         {(activeFilterCount > 0 || searchQuery) && (
-          <View className="px-4 py-2 bg-gray-50">
+          <View className="px-4 py-2 bg-surface-light">
             <View className="flex-row flex-wrap gap-2">
               {searchQuery && (
-                <View className="bg-primary-100 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary-700 text-sm mr-1">
+                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
+                  <Text className="text-primary text-sm mr-1">
                     Store: {searchQuery}
                   </Text>
                   <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={16} color="#0284c7" />
+                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
                   </TouchableOpacity>
                 </View>
               )}
               {filters.status && (
-                <View className="bg-primary-100 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary-700 text-sm mr-1 capitalize">
+                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
+                  <Text className="text-primary text-sm mr-1 capitalize">
                     {filters.status}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setFilters((prev) => ({ ...prev, status: '' }))}
                   >
-                    <Ionicons name="close-circle" size={16} color="#0284c7" />
+                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
                   </TouchableOpacity>
                 </View>
               )}
               {(filters.startDate || filters.endDate) && (
-                <View className="bg-primary-100 px-3 py-1 rounded-full flex-row items-center">
-                  <Text className="text-primary-700 text-sm mr-1">
+                <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center">
+                  <Text className="text-primary text-sm mr-1">
                     Date Range
                   </Text>
                   <TouchableOpacity
@@ -294,7 +294,7 @@ export default function ReceiptsScreen() {
                       }))
                     }
                   >
-                    <Ionicons name="close-circle" size={16} color="#0284c7" />
+                    <Ionicons name="close-circle" size={16} color="#0ea5e9" />
                   </TouchableOpacity>
                 </View>
               )}
@@ -302,7 +302,7 @@ export default function ReceiptsScreen() {
                 onPress={clearFilters}
                 className="px-3 py-1 rounded-full flex-row items-center"
               >
-                <Text className="text-gray-600 text-sm font-medium">Clear all</Text>
+                <Text className="text-text-secondary text-sm font-medium">Clear all</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -320,7 +320,12 @@ export default function ReceiptsScreen() {
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={renderFooter}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            <RefreshControl 
+              refreshing={isRefreshing} 
+              onRefresh={onRefresh}
+              colors={['#0ea5e9']}
+              tintColor="#0ea5e9"
+            />
           }
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
@@ -334,6 +339,6 @@ export default function ReceiptsScreen() {
         onApply={handleApplyFilters}
         initialFilters={filters}
       />
-    </SafeAreaView>
+    </View>
   );
 }

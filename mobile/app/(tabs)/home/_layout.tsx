@@ -7,12 +7,13 @@ export default function HomeLayout() {
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: '#1f2937',
         },
-        headerTintColor: '#111827',
+        headerTintColor: '#f9fafb',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Screen

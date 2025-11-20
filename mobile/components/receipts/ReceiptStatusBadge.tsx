@@ -16,29 +16,29 @@ export const ReceiptStatusBadge: React.FC<ReceiptStatusBadgeProps> = ({
     switch (status) {
       case 'completed':
         return {
-          bg: 'bg-success-100',
-          text: 'text-success-700',
+          bg: 'bg-success/20',
+          text: 'text-success',
           icon: 'checkmark-circle',
           label: 'Completed',
         };
       case 'processing':
         return {
-          bg: 'bg-warning-100',
-          text: 'text-warning-700',
+          bg: 'bg-warning/20',
+          text: 'text-warning',
           icon: 'time',
           label: 'Processing',
         };
       case 'failed':
         return {
-          bg: 'bg-error-100',
-          text: 'text-error-700',
+          bg: 'bg-error/20',
+          text: 'text-error',
           icon: 'close-circle',
           label: 'Failed',
         };
       default:
         return {
-          bg: 'bg-gray-100',
-          text: 'text-gray-700',
+          bg: 'bg-text-muted/20',
+          text: 'text-text-muted',
           icon: 'ellipse',
           label: 'Pending',
         };

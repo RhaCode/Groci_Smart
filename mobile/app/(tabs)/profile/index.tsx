@@ -1,7 +1,6 @@
 // mobile/app/(tabs)/profile/index.tsx
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { Card } from '../../../components/ui/Card';
@@ -52,39 +51,38 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1 p-4">
+      <ScrollView className="flex-1 p-4 bg-background">
         {/* Profile Header */}
-        <Card className="items-center mb-4">
-          <View className="bg-primary-100 rounded-full p-6 mb-4">
+        <Card className="items-center mb-4 bg-surface">
+          <View className="bg-primary/20 rounded-full p-6 mb-4">
             <Text className="text-4xl">👤</Text>
           </View>
-          <Text className="text-2xl font-bold text-gray-800">
+          <Text className="text-2xl font-bold text-text-primary">
             {user?.first_name && user?.last_name
               ? `${user.first_name} ${user.last_name}`
               : user?.username}
           </Text>
-          <Text className="text-gray-600 mt-1">{user?.email}</Text>
+          <Text className="text-text-secondary mt-1">{user?.email}</Text>
         </Card>
 
         {/* Menu Items */}
-        <Card>
+        <Card className="bg-surface">
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.title}
               onPress={item.onPress}
               className={`flex-row items-center py-4 ${
-                index !== menuItems.length - 1 ? 'border-b border-gray-200' : ''
+                index !== menuItems.length - 1 ? 'border-b border-border' : ''
               }`}
             >
               <Ionicons
                 name={item.icon as any}
                 size={24}
-                color={item.danger ? '#dc2626' : '#6b7280'}
+                color={item.danger ? '#ef4444' : '#9ca3af'}
               />
               <Text
                 className={`flex-1 ml-3 text-base ${
-                  item.danger ? 'text-error-600' : 'text-gray-800'
+                  item.danger ? 'text-error' : 'text-text-primary'
                 } font-medium`}
               >
                 {item.title}
@@ -95,10 +93,9 @@ export default function ProfileScreen() {
         </Card>
 
         {/* App Version */}
-        <Text className="text-center text-gray-500 mt-6 mb-4">
+        <Text className="text-center text-text-muted mt-6 mb-4">
           Version 1.0.0
         </Text>
       </ScrollView>
-    </SafeAreaView>
   );
 }
