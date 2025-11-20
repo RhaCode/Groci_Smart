@@ -74,6 +74,7 @@ export interface PriceComparison {
   store_totals: Record<string, number>;
   best_store: string;
   potential_savings: string;
+  message?: string;
 }
 
 export interface PriceComparisonItem {

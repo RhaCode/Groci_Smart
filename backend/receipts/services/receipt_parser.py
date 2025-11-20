@@ -156,6 +156,8 @@ class ReceiptParser:
         """Extract line items from receipt text"""
         items = []
         lines = text.split('\n')
+
+        print("Extracted Lines: ", lines)  # Debugging line to check extracted lines
         
         # Find the start of items section (look for DESCRIPTION or QTY headers)
         start_idx = 0
@@ -190,6 +192,7 @@ class ReceiptParser:
             else:
                 i += 1
         
+        print("Parsed Items: ", items)  # Debugging line to check parsed items
         return items
     
     def parse_item_from_receipt(self, lines, current_idx, end_idx):

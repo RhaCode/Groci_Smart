@@ -213,7 +213,7 @@ export default function ReceiptsScreen() {
               onPress={handleUploadPress}
               className="bg-primary rounded-full p-3"
             >
-              <Ionicons name="add" size={24} color="#f9fafb" />
+              <Ionicons name="camera" size={24} color="#ffffff" />
             </TouchableOpacity>
           </View>
 

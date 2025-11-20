@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import shoppingListService, { PriceComparison } from '../../../../services/shoppingListService';
@@ -53,9 +52,9 @@ export default function PriceComparisonScreen() {
   };
 
   const getStoreRankColor = (index: number, total: number) => {
-    if (index === 0) return 'bg-success-100 border-success-500';
-    if (index === total - 1) return 'bg-error-100 border-error-500';
-    return 'bg-gray-100 border-gray-300';
+    if (index === 0) return 'bg-success/20 border-success';
+    if (index === total - 1) return 'bg-error/20 border-error';
+    return 'bg-surface-light border-border-light';
   };
 
   const getStoreRankIcon = (index: number, total: number) => {
@@ -77,73 +76,77 @@ export default function PriceComparisonScreen() {
     );
   }
 
-  // Check if there are no items with prices
-  if (comparison.items.length === 0) {
+  // Check if there are no items with prices or if the API returns a message
+  if (comparison.message || !comparison.items || comparison.items.length === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-background">
         <View className="flex-1 justify-center items-center p-6">
-          <View className="bg-warning-100 rounded-full p-6 mb-4">
+          <View className="bg-warning/20 rounded-full p-6 mb-4 items-center justify-center">
             <Ionicons name="information-circle-outline" size={64} color="#f59e0b" />
           </View>
-          <Text className="text-xl font-bold text-gray-800 mb-2">
-            No Price Data Available
+          <Text className="text-xl font-bold text-text-primary text-center mb-2">
+            {comparison?.message || 'No Price Data Available'}
           </Text>
-          <Text className="text-gray-600 text-center">
+          <Text className="text-text-secondary text-center">
             Link your list items to products to enable price comparison across stores
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  // Sort stores by total price
-  const sortedStores = Object.entries(comparison.store_totals)
-    .map(([store, total]) => ({ store, total }))
-    .sort((a, b) => a.total - b.total);
+  // Sort stores by total price - check if store_totals exists
+  const sortedStores = comparison.store_totals 
+    ? Object.entries(comparison.store_totals)
+        .map(([store, total]) => ({ store, total }))
+        .sort((a, b) => a.total - b.total)
+    : [];
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1 p-4"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={() => fetchComparison(true)}
+            colors={['#0ea5e9']}
+            tintColor="#0ea5e9"
           />
         }
       >
         {/* Summary Card */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-surface">
           <View className="items-center mb-4">
-            <Text className="text-gray-600 mb-2">Shopping at</Text>
+            <Text className="text-text-secondary mb-2">Shopping at</Text>
             <View className="flex-row items-center">
-              <View className="bg-success-100 rounded-full p-3 mr-3">
+              <View className="bg-success/20 rounded-full p-3 mr-3">
                 <Ionicons name="trophy" size={24} color="#22c55e" />
               </View>
               <View>
-                <Text className="text-2xl font-bold text-gray-800">
-                  {comparison.best_store}
+                <Text className="text-2xl font-bold text-text-primary">
+                  {comparison.best_store || 'No data'}
                 </Text>
-                <Text className="text-success-600 font-medium">Best Overall Price</Text>
+                <Text className="text-success font-medium">Best Overall Price</Text>
               </View>
             </View>
           </View>
 
-          {parseFloat(comparison.potential_savings) > 0 && (
-            <View className="bg-success-50 border border-success-200 rounded-lg p-4">
+          {comparison.potential_savings && parseFloat(comparison.potential_savings) > 0 && (
+            <View className="bg-success/10 border border-success/30 rounded-lg p-4">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
                   <Ionicons name="cash-outline" size={24} color="#22c55e" />
                   <View className="ml-3">
-                    <Text className="text-success-900 font-semibold">
+                    <Text className="text-success font-semibold">
                       Potential Savings
                     </Text>
-                    <Text className="text-success-700 text-sm">
+                    <Text className="text-success text-sm">
                       vs. most expensive store
                     </Text>
                   </View>
                 </View>
-                <Text className="text-2xl font-bold text-success-600">
+                <Text className="text-2xl font-bold text-success">
                   {formatAmount(comparison.potential_savings)}
                 </Text>
               </View>
@@ -152,169 +155,174 @@ export default function PriceComparisonScreen() {
         </Card>
 
         {/* Store Comparison */}
-        <Card className="mb-4">
-          <Text className="text-lg font-semibold text-gray-800 mb-4">
-            Store Totals
-          </Text>
+        {sortedStores.length > 0 && (
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-4">
+              Store Totals
+            </Text>
 
-          {sortedStores.map((store, index) => (
-            <View
-              key={store.store}
-              className={`border-2 rounded-lg p-4 mb-3 ${getStoreRankColor(
-                index,
-                sortedStores.length
-              )}`}
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
-                  <View
-                    className={`rounded-full p-2 mr-3 ${
-                      index === 0 ? 'bg-success-200' : 'bg-gray-200'
-                    }`}
-                  >
-                    <Ionicons
-                      name={getStoreRankIcon(index, sortedStores.length) as any}
-                      size={20}
-                      color={index === 0 ? '#22c55e' : '#6b7280'}
-                    />
+            {sortedStores.map((store, index) => (
+              <View
+                key={store.store}
+                className={`border-2 rounded-lg p-4 mb-3 ${getStoreRankColor(
+                  index,
+                  sortedStores.length
+                )}`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center flex-1">
+                    <View
+                      className={`rounded-full p-2 mr-3 ${
+                        index === 0 ? 'bg-success/30' : 'bg-surface-light'
+                      }`}
+                    >
+                      <Ionicons
+                        name={getStoreRankIcon(index, sortedStores.length) as any}
+                        size={20}
+                        color={index === 0 ? '#22c55e' : '#9ca3af'}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-text-primary font-semibold text-base">
+                        {store.store}
+                      </Text>
+                      {index === 0 && (
+                        <Text className="text-success text-xs font-medium">
+                          Lowest Total
+                        </Text>
+                      )}
+                      {index === sortedStores.length - 1 && sortedStores.length > 1 && (
+                        <Text className="text-error text-xs font-medium">
+                          Highest Total
+                        </Text>
+                      )}
+                    </View>
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-800 font-semibold text-base">
-                      {store.store}
+                  <View className="items-end">
+                    <Text className="text-xl font-bold text-text-primary">
+                      {formatAmount(store.total)}
                     </Text>
-                    {index === 0 && (
-                      <Text className="text-success-600 text-xs font-medium">
-                        Lowest Total
+                    {index > 0 && (
+                      <Text className="text-xs text-error">
+                        +{formatAmount(store.total - sortedStores[0].total)}
                       </Text>
                     )}
-                    {index === sortedStores.length - 1 && sortedStores.length > 1 && (
-                      <Text className="text-error-600 text-xs font-medium">
-                        Highest Total
-                      </Text>
-                    )}
                   </View>
-                </View>
-                <View className="items-end">
-                  <Text className="text-xl font-bold text-gray-800">
-                    {formatAmount(store.total)}
-                  </Text>
-                  {index > 0 && (
-                    <Text className="text-xs text-error-600">
-                      +{formatAmount(store.total - sortedStores[0].total)}
-                    </Text>
-                  )}
                 </View>
               </View>
-            </View>
-          ))}
-        </Card>
+            ))}
+          </Card>
+        )}
 
         {/* Item-by-Item Comparison */}
-        <Card className="mb-4">
-          <Text className="text-lg font-semibold text-gray-800 mb-4">
-            Item Comparison
-          </Text>
+        {comparison.items && comparison.items.length > 0 && (
+          <Card className="mb-4 bg-surface">
+            <Text className="text-lg font-semibold text-text-primary mb-4">
+              Item Comparison
+            </Text>
 
-          {comparison.items.map((item, itemIndex) => (
-            <View
-              key={item.item_id}
-              className={`py-4 ${
-                itemIndex < comparison.items.length - 1
-                  ? 'border-b border-gray-200'
-                  : ''
-              }`}
-            >
-              {/* Item Header */}
-              <View className="mb-3">
-                <Text className="text-base font-semibold text-gray-800 mb-1">
-                  {item.product_name}
-                </Text>
-                <Text className="text-sm text-gray-600">
-                  Quantity: {item.quantity}
-                </Text>
-              </View>
+            {comparison.items.map((item, itemIndex) => (
+              <View
+                key={item.item_id}
+                className={`py-4 ${
+                  itemIndex < comparison.items.length - 1
+                    ? 'border-b border-border'
+                    : ''
+                }`}
+              >
+                {/* Item Header */}
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-text-primary mb-1">
+                    {item.product_name}
+                  </Text>
+                  <Text className="text-sm text-text-secondary">
+                    Quantity: {item.quantity}
+                  </Text>
+                </View>
 
-              {/* Store Prices */}
-              {item.stores.map((store, storeIndex) => {
-                const isBest = store.unit_price === item.best_price;
-                const isWorst =
-                  store.unit_price ===
-                  Math.max(...item.stores.map((s) => s.unit_price));
+                {/* Store Prices */}
+                {item.stores && item.stores.map((store, storeIndex) => {
+                  const isBest = store.unit_price === item.best_price;
+                  const isWorst = item.stores && item.stores.length > 1 &&
+                    store.unit_price === Math.max(...item.stores.map((s) => s.unit_price));
 
-                return (
-                  <View
-                    key={store.store_id}
-                    className={`flex-row justify-between items-center py-2 px-3 rounded-lg mb-2 ${
-                      isBest
-                        ? 'bg-success-50 border border-success-200'
-                        : isWorst && item.stores.length > 1
-                        ? 'bg-error-50 border border-error-200'
-                        : 'bg-gray-50'
-                    }`}
-                  >
-                    <View className="flex-row items-center flex-1">
-                      {isBest && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={18}
-                          color="#22c55e"
-                          style={{ marginRight: 8 }}
-                        />
-                      )}
-                      <Text
-                        className={`font-medium ${
-                          isBest
-                            ? 'text-success-700'
-                            : isWorst && item.stores.length > 1
-                            ? 'text-error-700'
-                            : 'text-gray-700'
-                        }`}
-                      >
-                        {store.store_name}
-                      </Text>
+                  return (
+                    <View
+                      key={store.store_id}
+                      className={`flex-row justify-between items-center py-2 px-3 rounded-lg mb-2 ${
+                        isBest
+                          ? 'bg-success/10 border border-success/30'
+                          : isWorst
+                          ? 'bg-error/10 border border-error/30'
+                          : 'bg-surface-light'
+                      }`}
+                    >
+                      <View className="flex-row items-center flex-1">
+                        {isBest && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={18}
+                            color="#22c55e"
+                            style={{ marginRight: 8 }}
+                          />
+                        )}
+                        <Text
+                          className={`font-medium ${
+                            isBest
+                              ? 'text-success'
+                              : isWorst
+                              ? 'text-error'
+                              : 'text-text-primary'
+                          }`}
+                        >
+                          {store.store_name}
+                        </Text>
+                      </View>
+                      <View className="items-end">
+                        <Text
+                          className={`font-bold ${
+                            isBest
+                              ? 'text-success'
+                              : isWorst
+                              ? 'text-error'
+                              : 'text-text-primary'
+                          }`}
+                        >
+                          {formatAmount(store.total_price)}
+                        </Text>
+                        <Text className="text-xs text-text-secondary">
+                          {formatAmount(store.unit_price)} each
+                        </Text>
+                      </View>
                     </View>
-                    <View className="items-end">
-                      <Text
-                        className={`font-bold ${
-                          isBest
-                            ? 'text-success-700'
-                            : isWorst && item.stores.length > 1
-                            ? 'text-error-700'
-                            : 'text-gray-800'
-                        }`}
-                      >
-                        {formatAmount(store.total_price)}
-                      </Text>
-                      <Text className="text-xs text-gray-600">
-                        {formatAmount(store.unit_price)} each
-                      </Text>
-                    </View>
+                  );
+                })}
+
+                {/* Best Store for this item */}
+                {item.best_store && (
+                  <View className="mt-2 flex-row items-center">
+                    <Ionicons name="star" size={14} color="#22c55e" />
+                    <Text className="text-xs text-text-secondary ml-1">
+                      Best at {item.best_store} - {formatAmount(item.best_price)} each
+                    </Text>
                   </View>
-                );
-              })}
-
-              {/* Best Store for this item */}
-              <View className="mt-2 flex-row items-center">
-                <Ionicons name="star" size={14} color="#22c55e" />
-                <Text className="text-xs text-gray-600 ml-1">
-                  Best at {item.best_store} - {formatAmount(item.best_price)} each
-                </Text>
+                )}
               </View>
-            </View>
-          ))}
-        </Card>
+            ))}
+          </Card>
+        )}
 
         {/* Info Note */}
-        <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <View className="bg-primary/10 border border-primary/30 rounded-lg p-4 mb-4">
           <View className="flex-row items-start">
-            <Ionicons name="information-circle" size={20} color="#0284c7" />
-            <Text className="flex-1 text-blue-800 text-sm ml-2">
+            <Ionicons name="information-circle" size={20} color="#0ea5e9" />
+            <Text className="flex-1 text-primary text-sm ml-2">
               Prices shown are based on the most recent data available. Actual prices
               may vary. Visit stores for current pricing.
             </Text>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
