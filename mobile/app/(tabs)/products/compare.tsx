@@ -1,4 +1,3 @@
-
 // mobile/app/(tabs)/products/compare.tsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,12 +11,14 @@ import productService, { ProductPriceComparison } from '../../../services/produc
 import { Card } from '../../../components/ui/Card';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function CompareProductsScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const [comparison, setComparison] = useState<ProductPriceComparison | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (productId) {
@@ -50,34 +51,40 @@ export default function CompareProductsScreen() {
   const sortedPrices = [...comparison.prices].sort((a, b) => a.price - b.price);
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView className="flex-1 p-4">
         {/* Product Info */}
-        <Card className="mb-4 bg-surface">
-          <Text className="text-2xl font-bold text-text-primary mb-1">
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 4 }}>
             {comparison.product_name}
           </Text>
           {comparison.brand && (
-            <Text className="text-text-secondary mb-3">{comparison.brand}</Text>
+            <Text style={{ color: theme.colors['text-secondary'], marginBottom: 12 }}>{comparison.brand}</Text>
           )}
 
           {/* Price Stats */}
-          <View className="flex-row justify-between pt-3 border-t border-border">
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            paddingTop: 12, 
+            borderTopWidth: 1, 
+            borderTopColor: theme.colors.border 
+          }}>
             <View>
-              <Text className="text-text-secondary text-sm mb-1">Lowest</Text>
-              <Text className="text-xl font-bold text-success">
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 4 }}>Lowest</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.success }}>
                 ${comparison.lowest_price.toFixed(2)}
               </Text>
             </View>
             <View>
-              <Text className="text-text-secondary text-sm mb-1">Highest</Text>
-              <Text className="text-xl font-bold text-error">
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 4 }}>Highest</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.error }}>
                 ${comparison.highest_price.toFixed(2)}
               </Text>
             </View>
             <View>
-              <Text className="text-text-secondary text-sm mb-1">Save</Text>
-              <Text className="text-xl font-bold text-primary">
+              <Text style={{ color: theme.colors['text-secondary'], fontSize: 14, marginBottom: 4 }}>Save</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors.primary }}>
                 {comparison.savings_percentage.toFixed(1)}%
               </Text>
             </View>
@@ -85,8 +92,8 @@ export default function CompareProductsScreen() {
         </Card>
 
         {/* Store Comparison */}
-        <Card className="bg-surface">
-          <Text className="text-lg font-semibold text-text-primary mb-3">
+        <Card style={{ backgroundColor: theme.colors.surface }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
             Prices by Store
           </Text>
 
@@ -97,38 +104,53 @@ export default function CompareProductsScreen() {
             return (
               <View
                 key={index}
-                className={`flex-row justify-between items-center p-3 rounded-lg mb-2 ${
-                  isBest
-                    ? 'bg-success/20 border border-success'
-                    : isWorst
-                    ? 'bg-error/20 border border-error'
-                    : 'bg-background border border-border'
-                }`}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                  backgroundColor: isBest 
+                    ? `${theme.colors.success}20` 
+                    : isWorst 
+                    ? `${theme.colors.error}20` 
+                    : theme.colors.background,
+                  borderWidth: 1,
+                  borderColor: isBest 
+                    ? theme.colors.success 
+                    : isWorst 
+                    ? theme.colors.error 
+                    : theme.colors.border,
+                }}
               >
-                <View className="flex-1">
+                <View style={{ flex: 1 }}>
                   <Text
-                    className={`font-semibold ${
-                      isBest
-                        ? 'text-success'
+                    style={{
+                      fontWeight: '600',
+                      color: isBest
+                        ? theme.colors.success
                         : isWorst
-                        ? 'text-error'
-                        : 'text-text-primary'
-                    }`}
+                        ? theme.colors.error
+                        : theme.colors['text-primary'],
+                    }}
                   >
                     {price.store_name}
                   </Text>
-                  <Text className="text-sm text-text-secondary">
+                  <Text style={{ fontSize: 14, color: theme.colors['text-secondary'] }}>
                     {price.store_location}
                   </Text>
                 </View>
                 <Text
-                  className={`text-lg font-bold ${
-                    isBest
-                      ? 'text-success'
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: isBest
+                      ? theme.colors.success
                       : isWorst
-                      ? 'text-error'
-                      : 'text-text-primary'
-                  }`}
+                      ? theme.colors.error
+                      : theme.colors['text-primary'],
+                  }}
                 >
                   ${price.price.toFixed(2)}
                 </Text>

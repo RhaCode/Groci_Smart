@@ -1,21 +1,24 @@
 // mobile/app/(tabs)/products/_layout.tsx
 import { Stack } from 'expo-router';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ProductsLayout() {
+  const { theme } = useTheme();
+
   return (
     <Stack
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#1f2937', // surface
+          backgroundColor: theme.colors.surface,
         },
-        headerTintColor: '#f9fafb', // text-primary
+        headerTintColor: theme.colors['text-primary'],
         headerTitleStyle: {
           fontWeight: 'bold',
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: '#111827', // background
+          backgroundColor: theme.colors.background,
         },
       }}
     >

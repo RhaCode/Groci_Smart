@@ -5,6 +5,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Light theme colors
+        'light-primary': '#0ea5e9',
+        'light-primary-dark': '#0284c7',
+        'light-primary-light': '#38bdf8',
+        
+        'light-accent': '#d946ef',
+        'light-accent-dark': '#c026d3',
+        'light-accent-light': '#e879f9',
+        
+        'light-success': '#22c55e',
+        'light-warning': '#f59e0b',
+        'light-error': '#ef4444',
+        
+        'light-background': '#f9fafb',
+        'light-surface': '#ffffff',
+        'light-surface-light': '#f3f4f6',
+        
+        'light-border': '#e5e7eb',
+        'light-border-light': '#f3f4f6',
+        
+        'light-text-primary': '#111827',
+        'light-text-secondary': '#6b7280',
+        'light-text-muted': '#9ca3af',
+        
+        // Dark theme colors (default)
         primary: '#0ea5e9',
         'primary-dark': '#0284c7',
         'primary-light': '#38bdf8',
@@ -54,4 +79,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

@@ -3,18 +3,21 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function TabsLayout() {
+  const { theme } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0ea5e9', // primary
-        tabBarInactiveTintColor: '#9ca3af', // muted
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors['text-muted'],
         tabBarStyle: {
-          backgroundColor: '#1f2937', // surface
+          backgroundColor: theme.colors.surface,
           borderTopWidth: 1,
-          borderTopColor: '#374151', // border
+          borderTopColor: theme.colors.border,
           paddingBottom: 5,
           paddingTop: 5,
           height: 80,
@@ -53,13 +56,13 @@ export default function TabsLayout() {
         name="receipts"
         options={{
           title: '',
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: () => (
             <View
               style={{
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: '#0ea5e9', // primary
+                backgroundColor: theme.colors.primary,
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginTop: -15,
@@ -73,7 +76,7 @@ export default function TabsLayout() {
                 elevation: 8,
               }}
             >
-              <Ionicons name="camera" size={28} color="#ffffff" />
+              <Ionicons name="camera" size={28} color={theme.colors['text-primary']} />
             </View>
           ),
           tabBarLabel: '',

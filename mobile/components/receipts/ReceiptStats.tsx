@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../ui/Card';
+import { useTheme } from '../../context/ThemeContext';
 
 interface StatsCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -21,16 +22,29 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   value,
   subtitle,
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <Card className="flex-1 bg-surface">
+    <Card className="flex-1" style={{ backgroundColor: theme.colors.surface }}>
       <View className="flex-row items-center mb-2">
         <View className={`${iconBg} rounded-full p-2 mr-2`}>
           <Ionicons name={icon} size={20} color={iconColor} />
         </View>
-        <Text className="text-text-secondary text-sm">{label}</Text>
+        <Text style={{ color: theme.colors['text-secondary'], fontSize: 12 }}>
+          {label}
+        </Text>
       </View>
-      <Text className="text-2xl font-bold text-text-primary mb-1">{value}</Text>
-      {subtitle && <Text className="text-xs text-text-muted">{subtitle}</Text>}
+      <Text 
+        className="text-2xl font-bold mb-1"
+        style={{ color: theme.colors['text-primary'] }}
+      >
+        {value}
+      </Text>
+      {subtitle && (
+        <Text style={{ color: theme.colors['text-muted'], fontSize: 12 }}>
+          {subtitle}
+        </Text>
+      )}
     </Card>
   );
 };
@@ -48,16 +62,30 @@ export const TopStoreCard: React.FC<TopStoreCardProps> = ({
   totalSpent,
   rank,
 }) => {
+  const { theme } = useTheme();
+
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-warning/20 text-warning';
+        return { 
+          bg: `rgba(${hexToRgb(theme.colors.warning)}, 0.2)`,
+          text: theme.colors.warning
+        };
       case 2:
-        return 'bg-text-muted/20 text-text-muted';
+        return { 
+          bg: `rgba(${hexToRgb(theme.colors['text-muted'])}, 0.2)`,
+          text: theme.colors['text-muted']
+        };
       case 3:
-        return 'bg-accent-light/20 text-accent-light';
+        return { 
+          bg: `rgba(${hexToRgb(theme.colors['accent-light'])}, 0.2)`,
+          text: theme.colors['accent-light']
+        };
       default:
-        return 'bg-primary/20 text-primary-light';
+        return { 
+          bg: `rgba(${hexToRgb(theme.colors.primary)}, 0.2)`,
+          text: theme.colors['primary-light']
+        };
     }
   };
 
@@ -74,52 +102,47 @@ export const TopStoreCard: React.FC<TopStoreCardProps> = ({
     }
   };
 
+  const rankColors = getRankColor(rank);
+
   return (
-    <View className="flex-row items-center py-3 border-b border-border last:border-b-0">
+    <View 
+      className="flex-row items-center py-3 border-b last:border-b-0"
+      style={{ borderColor: theme.colors.border }}
+    >
       <View
-        className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${getRankColor(
-          rank
-        )}`}
+        className="w-10 h-10 rounded-full items-center justify-center mr-3"
+        style={{ backgroundColor: rankColors.bg }}
       >
-        <Ionicons name={getRankIcon(rank) as any} size={20} color="currentColor" />
+        <Ionicons 
+          name={getRankIcon(rank) as any} 
+          size={20} 
+          color={rankColors.text} 
+        />
       </View>
       <View className="flex-1">
-        <Text className="text-text-primary font-semibold">{storeName}</Text>
-        <Text className="text-sm text-text-secondary">
+        <Text style={{ color: theme.colors['text-primary'], fontWeight: '600' }}>
+          {storeName}
+        </Text>
+        <Text style={{ color: theme.colors['text-secondary'], fontSize: 14 }}>
           {receiptCount} {receiptCount === 1 ? 'receipt' : 'receipts'}
         </Text>
       </View>
-      <Text className="text-primary font-bold">${totalSpent}</Text>
+      <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
+        ${totalSpent}
+      </Text>
     </View>
   );
 };
 
-// mobile/hooks/useReceiptStats.ts
-import { useState, useEffect } from 'react';
-import receiptService, { ReceiptStats } from '../../services/receiptService';
-
-export const useReceiptStats = () => {
-  const [stats, setStats] = useState<ReceiptStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStats = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await receiptService.getReceiptStats();
-      setStats(data);
-    } catch (err: any) {
-      console.error('Error fetching stats:', err);
-      setError(err.message || 'Failed to load statistics');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  return { stats, isLoading, error, refetch: fetchStats };
+// Helper function to convert hex to rgb
+const hexToRgb = (hex: string): string => {
+  // Remove the # if present
+  hex = hex.replace(/^#/, '');
+  
+  // Parse the hex values
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  return `${r}, ${g}, ${b}`;
 };

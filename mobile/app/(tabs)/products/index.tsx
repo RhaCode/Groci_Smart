@@ -12,9 +12,10 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import productService, { ProductSummary } from '../../../services/productService';
-import { ProductCard } from '@/components/products/ProductCard';
+import { ProductCard } from '../../../components/products/ProductCard';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ProductsScreen() {
   const [products, setProducts] = useState<ProductSummary[]>([]);
@@ -24,6 +25,7 @@ export default function ProductsScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const { theme } = useTheme();
 
   // Fetch products
   const fetchProducts = async (pageNum: number = 1, refresh: boolean = false) => {
@@ -88,13 +90,20 @@ export default function ProductsScreen() {
     if (isLoading) return null;
     return (
       <View className="flex-1 justify-center items-center p-6">
-        <View className="bg-primary/20 rounded-full p-6 mb-4">
-          <Ionicons name="pricetag-outline" size={64} color="#0ea5e9" />
+        <View 
+          style={{ 
+            backgroundColor: `${theme.colors.primary}20`, 
+            borderRadius: 9999, 
+            padding: 24, 
+            marginBottom: 16 
+          }}
+        >
+          <Ionicons name="pricetag-outline" size={64} color={theme.colors.primary} />
         </View>
-        <Text className="text-xl font-bold text-text-primary mb-2">
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 8 }}>
           No Products Found
         </Text>
-        <Text className="text-text-secondary text-center">
+        <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center' }}>
           Browse or search for products to track prices
         </Text>
       </View>
@@ -105,7 +114,7 @@ export default function ProductsScreen() {
     if (!hasMore) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="small" color="#0ea5e9" />
+        <ActivityIndicator size="small" color={theme.colors.primary} />
       </View>
     );
   };
@@ -119,16 +128,36 @@ export default function ProductsScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {/* Search Bar */}
-      <View className="px-4 py-3 bg-surface border-b border-border">
-        <View className="flex-row items-center gap-2">
-          <View className="flex-1 flex-row items-center bg-background rounded-lg px-3 border border-border">
-            <Ionicons name="search-outline" size={20} color="#9ca3af" />
+      <View style={{ 
+        paddingHorizontal: 16, 
+        paddingVertical: 12, 
+        backgroundColor: theme.colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ 
+            flex: 1, 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            backgroundColor: theme.colors.background, 
+            borderRadius: 8, 
+            paddingHorizontal: 12,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }}>
+            <Ionicons name="search-outline" size={20} color={theme.colors['text-muted']} />
             <TextInput
-              className="flex-1 ml-2 py-2 text-text-primary"
+              style={{ 
+                flex: 1, 
+                marginLeft: 8, 
+                paddingVertical: 8, 
+                color: theme.colors['text-primary'] 
+              }}
               placeholder="Search products..."
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={theme.colors['text-muted']}
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
@@ -136,9 +165,13 @@ export default function ProductsScreen() {
           </View>
           <TouchableOpacity
             onPress={handleSearch}
-            className="bg-primary p-2 rounded-lg"
+            style={{ 
+              backgroundColor: theme.colors.primary, 
+              padding: 8, 
+              borderRadius: 8 
+            }}
           >
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+            <Ionicons name="arrow-forward" size={20} color={theme.colors['text-primary']} />
           </TouchableOpacity>
         </View>
       </View>
@@ -151,15 +184,15 @@ export default function ProductsScreen() {
           <ProductCard product={item} onPress={() => handleProductPress(item.id)} />
         )}
         contentContainerStyle={{ padding: 16 }}
-        ItemSeparatorComponent={() => <View className="h-3" />}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={renderEmptyState}
         ListFooterComponent={renderFooter}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            colors={['#0ea5e9']}
-            tintColor="#0ea5e9"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         onEndReached={loadMore}

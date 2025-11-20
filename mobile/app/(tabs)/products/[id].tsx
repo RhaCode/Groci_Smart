@@ -1,8 +1,6 @@
-
 // mobile/app/(tabs)/products/[id].tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import productService, { Product } from '../../../services/productService';
@@ -10,12 +8,14 @@ import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useTheme } from '../../../context/ThemeContext';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (id) {
@@ -52,38 +52,38 @@ export default function ProductDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView className="flex-1 p-4">
         {/* Product Info */}
-        <Card className="mb-4 bg-surface">
-          <Text className="text-2xl font-bold text-text-primary mb-2">
+        <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.colors['text-primary'], marginBottom: 8 }}>
             {product.name}
           </Text>
 
           {product.brand && (
-            <Text className="text-lg text-text-secondary mb-3">{product.brand}</Text>
+            <Text style={{ fontSize: 18, color: theme.colors['text-secondary'], marginBottom: 12 }}>{product.brand}</Text>
           )}
 
           {/* Meta Info */}
-          <View className="space-y-2">
+          <View style={{ gap: 8 }}>
             {product.category_name && (
-              <View className="flex-row items-center">
-                <Ionicons name="folder-outline" size={16} color="#0ea5e9" />
-                <Text className="text-text-secondary ml-2">{product.category_name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="folder-outline" size={16} color={theme.colors.primary} />
+                <Text style={{ color: theme.colors['text-secondary'], marginLeft: 8 }}>{product.category_name}</Text>
               </View>
             )}
 
             {product.unit && (
-              <View className="flex-row items-center">
-                <Ionicons name="cube-outline" size={16} color="#0ea5e9" />
-                <Text className="text-text-secondary ml-2">{product.unit}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="cube-outline" size={16} color={theme.colors.primary} />
+                <Text style={{ color: theme.colors['text-secondary'], marginLeft: 8 }}>{product.unit}</Text>
               </View>
             )}
 
             {product.barcode && (
-              <View className="flex-row items-center">
-                <Ionicons name="barcode-outline" size={16} color="#0ea5e9" />
-                <Text className="text-text-secondary ml-2">{product.barcode}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="barcode-outline" size={16} color={theme.colors.primary} />
+                <Text style={{ color: theme.colors['text-secondary'], marginLeft: 8 }}>{product.barcode}</Text>
               </View>
             )}
           </View>
@@ -91,21 +91,30 @@ export default function ProductDetailScreen() {
 
         {/* Current Prices */}
         {product.current_prices.length > 0 && (
-          <Card className="mb-4 bg-surface">
-            <Text className="text-lg font-semibold text-text-primary mb-3">
+          <Card style={{ backgroundColor: theme.colors.surface, marginBottom: 16 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors['text-primary'], marginBottom: 12 }}>
               Current Prices
             </Text>
 
             {product.current_prices.map((price, index) => (
               <View
                 key={price.id}
-                className={`flex-row justify-between items-center py-2 px-3 bg-background rounded-lg mb-2`}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: theme.colors.background,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                }}
               >
                 <View>
-                  <Text className="text-text-primary font-medium">{price.store_name}</Text>
-                  <Text className="text-sm text-text-secondary">{price.store_location}</Text>
+                  <Text style={{ color: theme.colors['text-primary'], fontWeight: '500' }}>{price.store_name}</Text>
+                  <Text style={{ fontSize: 14, color: theme.colors['text-secondary'] }}>{price.store_location}</Text>
                 </View>
-                <Text className="text-lg font-bold text-primary">
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.primary }}>
                   ${parseFloat(price.price).toFixed(2)}
                 </Text>
               </View>
@@ -115,13 +124,18 @@ export default function ProductDetailScreen() {
 
         {/* Lowest Price */}
         {product.lowest_price && (
-          <Card className="mb-4 bg-success/20 border border-success/30">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="trophy" size={24} color="#22c55e" />
-              <Text className="text-success font-semibold ml-2">Best Price</Text>
+          <Card style={{ 
+            backgroundColor: `${theme.colors.success}20`, 
+            borderColor: `${theme.colors.success}50`,
+            borderWidth: 1,
+            marginBottom: 16 
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="trophy" size={24} color={theme.colors.success} />
+              <Text style={{ color: theme.colors.success, fontWeight: '600', marginLeft: 8 }}>Best Price</Text>
             </View>
-            <Text className="text-text-primary mb-1">{product.lowest_price.store}</Text>
-            <Text className="text-3xl font-bold text-success">
+            <Text style={{ color: theme.colors['text-primary'], marginBottom: 4 }}>{product.lowest_price.store}</Text>
+            <Text style={{ fontSize: 32, fontWeight: 'bold', color: theme.colors.success }}>
               ${product.lowest_price.price.toFixed(2)}
             </Text>
           </Card>
@@ -137,6 +151,6 @@ export default function ProductDetailScreen() {
           />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
