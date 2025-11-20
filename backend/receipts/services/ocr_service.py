@@ -107,71 +107,6 @@ class AzureOCRService:
                 'raw_result': None
             }
     
-    def extract_text_from_url(self, image_url):
-        """
-        Extract text from an image URL using Azure OCR
-        
-        Args:
-            image_url: URL of the image
-            
-        Returns:
-            dict: Contains 'text' (extracted text) and 'raw_result' (full API response)
-        """
-        try:
-            # Call the API with image URL
-            read_operation = self.client.read(image_url, raw=True)
-            
-            # Get operation location
-            operation_location = read_operation.headers["Operation-Location"]
-            operation_id = operation_location.split("/")[-1]
-            
-            # Wait for operation to complete
-            max_retries = 10
-            retry_count = 0
-            while retry_count < max_retries:
-                read_result = self.client.get_read_result(operation_id)
-                
-                if read_result.status not in [
-                    OperationStatusCodes.running,
-                    OperationStatusCodes.not_started
-                ]:
-                    break
-                
-                time.sleep(1)
-                retry_count += 1
-            
-            if read_result.status != OperationStatusCodes.succeeded:
-                return {
-                    'success': False,
-                    'error': f'OCR operation failed with status: {read_result.status}',
-                    'text': '',
-                    'raw_result': None
-                }
-            
-            # Extract text
-            extracted_text = []
-            if read_result.analyze_result and read_result.analyze_result.read_results:
-                for page in read_result.analyze_result.read_results:
-                    for line in page.lines:
-                        extracted_text.append(line.text)
-            
-            full_text = '\n'.join(extracted_text)
-            
-            return {
-                'success': True,
-                'text': full_text,
-                'raw_result': read_result.as_dict(),
-                'error': None
-            }
-            
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'OCR error: {str(e)}',
-                'text': '',
-                'raw_result': None
-            }
-    
     @staticmethod
     def process_receipt_ocr(receipt):
         """
@@ -208,6 +143,8 @@ class AzureOCRService:
             # Update receipt with parsed data
             if parsed_data.get('store_name'):
                 receipt.store_name = parsed_data['store_name']
+            if parsed_data.get('store_location'):
+                receipt.store_location = parsed_data['store_location']
             if parsed_data.get('purchase_date'):
                 receipt.purchase_date = parsed_data['purchase_date']
             if parsed_data.get('total_amount'):

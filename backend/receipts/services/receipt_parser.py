@@ -1,5 +1,5 @@
 """
-Receipt parsing service
+Enhanced Receipt parsing service - handles multiple receipt formats
 backend/receipts/services/receipt_parser.py
 """
 
@@ -9,50 +9,46 @@ from decimal import Decimal
 
 
 class ReceiptParser:
-    """Service for parsing OCR text from receipts"""
+    """Service for parsing OCR text from receipts with support for multiple formats"""
     
     def __init__(self):
         # Common store name patterns
         self.store_patterns = [
             r'(?:^|\n)([A-Z][A-Za-z\s&]+(?:SUPERMARKET|STORE|MART|SHOP|MARKET|GROCERY|DEPOT))',
-            r'(?:^|\n)([A-Z][A-Z\s&]{3,30})',  # All caps store names
+            r'(?:^|\n)([A-Z][A-Z\s&]{3,30})',
         ]
         
-        # Date patterns
+        # Enhanced date patterns
         self.date_patterns = [
-            r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',  # DD-MM-YYYY or MM-DD-YYYY
-            r'(\d{4}[-/]\d{1,2}[-/]\d{1,2})',    # YYYY-MM-DD
-            r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{2,4})',  # DD Mon YYYY
+            r'(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})',  # DD Mon YYYY
+            r'(?:Time|Date):\s*([A-Za-z]+\s+\d{1,2}\s+\d{4})',  # Time: Mon DD YYYY
+            r'(\d{1,2}[-/]\d{1,2}[-/]\d{4})',  # DD-MM-YYYY or MM-DD-YYYY
+            r'(\d{4}[-/]\d{1,2}[-/]\d{1,2})',  # YYYY-MM-DD
         ]
         
-        # Amount patterns
+        # Total patterns - case insensitive now
         self.total_patterns = [
-            r'TOTAL[:\s]*\$?\s*(\d+[.,]\d{2})',
-            r'AMOUNT[:\s]*\$?\s*(\d+[.,]\d{2})',
-            r'BALANCE[:\s]*\$?\s*(\d+[.,]\d{2})',
+            r'(?:^|\n)\s*(?:TOTAL|Total)[:\s]*\$?\s*([0-9,]+(?:[.,]\d{2})?)',
         ]
         
+        # Tax patterns - includes GCT, VAT, TAX, GST
         self.tax_patterns = [
-            r'TAX[:\s]*\$?\s*(\d+[.,]\d{2})',
-            r'GST[:\s]*\$?\s*(\d+[.,]\d{2})',
-            r'VAT[:\s]*\$?\s*(\d+[.,]\d{2})',
+            r'(?:^|\n)\s*(?:GCT|TAX|VAT|GST)[:\s]*\$?\s*([0-9,]+(?:[.,]\d{2})?)',
+        ]
+        
+        # Subtotal pattern
+        self.subtotal_patterns = [
+            r'(?:^|\n)\s*(?:Subtotal|SUBTOTAL)[:\s]*\$?\s*([0-9,]+(?:[.,]\d{2})?)',
         ]
     
     def parse_receipt_text(self, text):
-        """
-        Parse receipt text and extract structured data
-        
-        Args:
-            text: OCR extracted text from receipt
-            
-        Returns:
-            dict: Parsed receipt data with store, date, items, totals
-        """
+        """Parse receipt text and extract structured data"""
         if not text:
             return {}
         
         parsed_data = {
             'store_name': self.extract_store_name(text),
+            'store_location': self.extract_store_location(text),
             'purchase_date': self.extract_date(text),
             'total_amount': self.extract_total(text),
             'tax_amount': self.extract_tax(text),
@@ -63,17 +59,32 @@ class ReceiptParser:
     
     def extract_store_name(self, text):
         """Extract store name from receipt text"""
-        # Try to find store name in first few lines
-        lines = text.split('\n')[:5]  # Check first 5 lines
+        lines = text.split('\n')[:5]
         
         for pattern in self.store_patterns:
             for line in lines:
                 match = re.search(pattern, line, re.IGNORECASE)
                 if match:
                     store_name = match.group(1).strip()
-                    # Clean up the store name
                     store_name = re.sub(r'\s+', ' ', store_name)
                     return store_name
+        
+        return ''
+    
+    def extract_store_location(self, text):
+        """Extract store location/address from receipt text"""
+        lines = text.split('\n')[:15]
+        
+        for line in lines:
+            match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),\s*([A-Z]+(?:\s+[A-Z]+)?)', line)
+            if match:
+                city = match.group(1)
+                state = match.group(2)
+                return f"{city}, {state}"
+        
+        for line in lines:
+            if re.search(r'\d+\s+[A-Z]', line) and len(line) > 10:
+                return line.strip()
         
         return ''
     
@@ -83,21 +94,29 @@ class ReceiptParser:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 date_str = match.group(1)
-                return self.parse_date_string(date_str)
+                parsed = self.parse_date_string(date_str)
+                if parsed:
+                    return parsed
         
         return None
     
     def parse_date_string(self, date_str):
         """Parse date string into datetime.date object"""
-        # Try common date formats
         date_formats = [
-            '%d-%m-%Y', '%d/%m/%Y',
-            '%m-%d-%Y', '%m/%d/%Y',
-            '%Y-%m-%d', '%Y/%m/%d',
-            '%d-%m-%y', '%d/%m/%y',
-            '%m-%d-%y', '%m/%d/%y',
-            '%d %b %Y', '%d %B %Y',
+            '%b %d %Y',   # Mon DD YYYY
+            '%B %d %Y',   # Month DD YYYY
+            '%d %b %Y',   # DD Mon YYYY
+            '%d %B %Y',   # DD Month YYYY
+            '%m/%d/%Y',   # MM/DD/YYYY
+            '%d/%m/%Y',   # DD/MM/YYYY
+            '%Y/%m/%d',   # YYYY/MM/DD
+            '%m-%d-%Y',   # MM-DD-YYYY
+            '%d-%m-%Y',   # DD-MM-YYYY
+            '%Y-%m-%d',   # YYYY-MM-DD
         ]
+        
+        # Clean up the date string
+        date_str = date_str.strip()
         
         for fmt in date_formats:
             try:
@@ -110,9 +129,9 @@ class ReceiptParser:
     def extract_total(self, text):
         """Extract total amount from receipt text"""
         for pattern in self.total_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if match:
-                amount_str = match.group(1).replace(',', '.')
+                amount_str = match.group(1).replace(',', '').replace(' ', '')
                 try:
                     return Decimal(amount_str)
                 except:
@@ -123,9 +142,9 @@ class ReceiptParser:
     def extract_tax(self, text):
         """Extract tax amount from receipt text"""
         for pattern in self.tax_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if match:
-                amount_str = match.group(1).replace(',', '.')
+                amount_str = match.group(1).replace(',', '').replace(' ', '')
                 try:
                     return Decimal(amount_str)
                 except:
@@ -138,104 +157,132 @@ class ReceiptParser:
         items = []
         lines = text.split('\n')
         
-        print("DEBUG: Parsing items from lines:", lines)
+        # Find the start of items section (look for DESCRIPTION or QTY headers)
+        start_idx = 0
+        for i, line in enumerate(lines):
+            if 'DESCRIPTION' in line.upper() or 'QTY' in line.upper():
+                start_idx = i + 1
+                break
         
-        i = 0
-        while i < len(lines):
+        # Find the end of items section (look for Subtotal, GCT, Total, etc.)
+        end_idx = len(lines)
+        for i in range(start_idx, len(lines)):
+            line_upper = lines[i].upper().strip()
+            if any(keyword in line_upper for keyword in ['SUBTOTAL', 'GCT', 'TOTAL', 'DEBIT', 'CASH', 'PAYMENT']):
+                end_idx = i
+                break
+        
+        # Process item lines
+        i = start_idx
+        while i < end_idx:
             line = lines[i].strip()
             
-            # Skip empty lines
-            if len(line) < 2:
+            # Skip empty lines or separator lines
+            if len(line) < 2 or re.match(r'^[=\-\s]+$', line):
                 i += 1
                 continue
             
-            # Skip lines with keywords to ignore
-            ignore_keywords = ['SUBTOTAL', 'TAX', 'TOTAL', 'CHANGE', 'TEND', 'PAID', 'CARD', 'CASH', 
-                             'Item Count', 'Thanks', 'Date', 'Time', 'Lane', 'Clerk', 'Trans', 
-                             'Cashier', 'GA-', 'Douglasville']
-            if any(keyword.upper() in line.upper() for keyword in ignore_keywords):
-                i += 1
-                continue
-            
-            # Try to parse item (handles multi-line formats)
-            item = self.parse_item_multiline(lines, i)
+            # Try to parse item
+            item = self.parse_item_from_receipt(lines, i, end_idx)
             if item:
                 items.append(item)
-                # Skip the lines that were consumed
-                i += item.get('lines_consumed', 1)
-                continue
-            
-            i += 1
+                i += item.pop('lines_consumed', 1)
+            else:
+                i += 1
         
-        # Clean up items - remove the 'lines_consumed' key
-        for item in items:
-            item.pop('lines_consumed', None)
-        
-        print("DEBUG: Extracted items:", items)
         return items
     
-    def parse_item_multiline(self, lines, current_index):
+    def parse_item_from_receipt(self, lines, current_idx, end_idx):
         """
-        Parse items that span multiple lines
+        Parse items from receipt handling various formats:
         
-        Format patterns:
-        1. PRODUCT NAME
-           $PRICE TFA
-           QTY EA
-           @ UNIT_PRICE/EA
-           
-        2. PRODUCT NAME
-           $PRICE TFA
-           
-        3. PRODUCT NAME    $PRICE
+        Format 1:
+        PRODUCT NAME WITH DESCRIPTION
+        PRICE
+        QTY TOTAL
+        
+        Format 2:
+        PRODUCT NAME
+        PRICE QTY TOTAL
+        
+        Format 3:
+        PRODUCT NAME                    QTY AMOUNT
         """
         
-        line = lines[current_index].strip()
+        line = lines[current_idx].strip()
         
-        # Check if this line looks like a product name (all caps letters, spaces, numbers)
-        # Must NOT start with $ or @ or be a number-only line
-        if not re.match(r'^[A-Z][A-Z\s0-9\-&]+$', line):
+        # Skip non-product lines
+        if not line or len(line) < 3:
             return None
         
-        # Skip if line is too short or contains ignore patterns
-        if len(line) < 3 or re.search(r'^\d+$', line) or '@' in line or '$' in line:
+        # Skip lines that are clearly not product names
+        if re.match(r'^[\d\s\-=]+$', line):
+            return None
+        
+        # Product name should start with letter
+        if not re.match(r'^[A-Z0-9]', line):
+            return None
+        
+        # Skip header rows
+        if any(keyword in line.upper() for keyword in ['DESCRIPTION', 'QTY', 'AMOUNT', 'PRICE', 'Thank', 'YOU SAVED']):
+            return None
+        
+        # Skip discount lines (they continue from previous item)
+        if 'Discount:' in line:
             return None
         
         product_name = line
         
-        # Look for price on next line
-        if current_index + 1 >= len(lines):
-            return None
-            
-        next_line = lines[current_index + 1].strip()
-        
-        # Check if next line has a price
-        price_match = re.search(r'^\$(\d+\.\d{2})\s*(?:TFA|T)?$', next_line)
-        if not price_match:
-            return None
-        
-        total_price = Decimal(price_match.group(1))
+        # Look ahead to find quantity and price information
         quantity = Decimal('1.0')
-        unit_price = total_price
-        lines_consumed = 2
+        unit_price = Decimal('0.00')
+        total_price = Decimal('0.00')
+        lines_consumed = 1
         
-        # Check if there's quantity info on the next lines
-        if current_index + 2 < len(lines):
-            qty_line = lines[current_index + 2].strip()
+        # Check next few lines for price and quantity
+        for offset in range(1, min(4, end_idx - current_idx)):
+            next_line = lines[current_idx + offset].strip()
             
-            # Check for quantity pattern: "4EA" or "4 EA"
-            qty_match = re.search(r'^(\d+)\s*EA$', qty_line)
-            if qty_match:
-                quantity = Decimal(qty_match.group(1))
-                lines_consumed = 3
-                
-                # Check for unit price on next line
-                if current_index + 3 < len(lines):
-                    unit_line = lines[current_index + 3].strip()
-                    unit_match = re.search(r'^@?\s*(\d+\.\d{2})/EA$', unit_line)
-                    if unit_match:
-                        unit_price = Decimal(unit_match.group(1))
-                        lines_consumed = 4
+            if not next_line or 'Discount' in next_line:
+                continue
+            
+            # Try to extract price and quantity from this line
+            # Patterns: "PRICE QTY TOTAL" or "QTY PRICE" or just prices
+            
+            # Pattern: "2.00 4,802.96G" or "2.00 4,802.96"
+            match = re.search(r'(\d+\.?\d*)\s+([0-9,]+\.?\d+)[G]?\s*$', next_line)
+            if match:
+                quantity = Decimal(match.group(1))
+                total_price = Decimal(match.group(2).replace(',', ''))
+                unit_price = total_price / quantity if quantity > 0 else total_price
+                lines_consumed = offset + 1
+                break
+            
+            # Pattern: "3,048.17" followed by "3.00 9,144.51"
+            match = re.search(r'^([0-9,]+\.\d{2})$', next_line)
+            if match:
+                unit_price = Decimal(next_line.replace(',', ''))
+                # Look at next line for qty and total
+                if current_idx + offset + 1 < end_idx:
+                    qty_line = lines[current_idx + offset + 1].strip()
+                    qty_match = re.search(r'(\d+\.?\d*)\s+([0-9,]+\.?\d+)[G]?', qty_line)
+                    if qty_match:
+                        quantity = Decimal(qty_match.group(1))
+                        total_price = Decimal(qty_match.group(2).replace(',', ''))
+                        lines_consumed = offset + 2
+                        break
+        
+        # If we couldn't find quantity/price, this might not be a valid item
+        if total_price == 0 and unit_price == 0:
+            return None
+        
+        # If unit price is 0, derive it from total and quantity
+        if unit_price == 0 and quantity > 0:
+            unit_price = total_price / quantity
+        
+        # If total price is 0, derive it from unit price and quantity
+        if total_price == 0:
+            total_price = unit_price * quantity
         
         return {
             'name': product_name,
@@ -245,22 +292,3 @@ class ReceiptParser:
             'total_price': total_price,
             'lines_consumed': lines_consumed
         }
-    
-    def normalize_product_name(self, name):
-        """Normalize product name for matching"""
-        # Convert to lowercase
-        normalized = name.lower()
-        
-        # Remove special characters
-        normalized = re.sub(r'[^\w\s]', '', normalized)
-        
-        # Remove extra whitespace
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
-        
-        # Remove common words that don't help with matching
-        common_words = ['the', 'a', 'an', 'and', 'or', 'of']
-        words = normalized.split()
-        normalized = ' '.join([w for w in words if w not in common_words])
-        
-        return normalized
-    
