@@ -169,6 +169,18 @@ class ShoppingListService {
     }
   }
 
+  // Get single list item
+  async getListItem(listId: number, itemId: number): Promise<ShoppingListItem> {
+    try {
+      const response = await api.get<ShoppingListItem>(
+        `/shopping-lists/${listId}/items/${itemId}/`
+      );
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
   // Get list items
   async getListItems(listId: number, isChecked?: boolean): Promise<ShoppingListItem[]> {
     try {

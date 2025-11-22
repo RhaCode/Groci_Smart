@@ -58,6 +58,16 @@ export default function ListsLayout() {
         }}
       />
       <Stack.Screen
+        name="edit-item/[id]"
+        options={{
+          title: 'Edit Item',
+          presentation: 'modal',
+          headerStyle: {
+            backgroundColor: theme.colors.surface,
+          },
+        }}
+      />
+      <Stack.Screen
         name="compare/[id]"
         options={{
           title: 'Price Comparison',

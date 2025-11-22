@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import shoppingListService, { ShoppingList } from '../../../services/shoppingListService';
+import shoppingListService, { ShoppingList, ShoppingListItem } from '../../../services/shoppingListService';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -92,6 +92,64 @@ export default function ListDetailScreen() {
     router.push(`/(tabs)/lists/edit/${id}`);
   };
 
+  const handleEditItem = (item: ShoppingListItem) => {
+    if (!list) return;
+
+    router.push(`/(tabs)/lists/edit-item/${list.id}-${item.id}`);
+  };
+
+  const handleDeleteItem = (item: ShoppingListItem) => {
+    if (!list) return;
+
+    Alert.alert(
+      'Delete Item',
+      `Are you sure you want to delete "${item.product_name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await shoppingListService.deleteListItem(list.id, item.id);
+              // Refresh the list
+              fetchList();
+              Alert.alert('Success', 'Item deleted successfully');
+            } catch (err: any) {
+              Alert.alert('Error', 'Failed to delete item');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteList = () => {
+    if (!list) return;
+
+    Alert.alert(
+      'Delete List',
+      `Are you sure you want to delete "${list.name}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await shoppingListService.deleteShoppingList(list.id);
+              Alert.alert('Success', 'List deleted successfully', [
+                { text: 'OK', onPress: () => router.back() },
+              ]);
+            } catch (err: any) {
+              Alert.alert('Error', 'Failed to delete list');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleClearCompleted = () => {
     if (!list) return;
 
@@ -151,7 +209,7 @@ export default function ListDetailScreen() {
     );
   };
 
-  const handleCompareprices = () => {
+  const handleComparePrices = () => {
     router.push(`/(tabs)/lists/compare/${id}`);
   };
 
@@ -194,9 +252,14 @@ export default function ListDetailScreen() {
                 <Text style={{ color: theme.colors['text-secondary'], fontSize: 14 }}>{list.notes}</Text>
               )}
             </View>
-            <TouchableOpacity onPress={handleEditList} style={{ padding: 8 }}>
-              <Ionicons name="pencil" size={20} color={theme.colors['text-muted']} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={handleEditList} style={{ padding: 8 }}>
+                <Ionicons name="pencil" size={20} color={theme.colors['text-muted']} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDeleteList} style={{ padding: 8 }}>
+                <Ionicons name="trash-outline" size={20} color={theme.colors.warning} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Estimated Total */}
@@ -232,7 +295,7 @@ export default function ListDetailScreen() {
           {list.items_count > 0 && (
             <Button
               title="Compare Prices"
-              onPress={handleCompareprices}
+              onPress={handleComparePrices}
               variant="primary"
               style={{ flex: 1 }}
             />
@@ -255,7 +318,10 @@ export default function ListDetailScreen() {
                     key={item.id}
                     item={item}
                     onToggle={() => handleToggleItem(item.id)}
+                    onEdit={() => handleEditItem(item)}
+                    onDelete={() => handleDeleteItem(item)}
                     showBorder={index < uncheckedItems.length - 1 || checkedItems.length > 0}
+                    showActions={true}
                   />
                 ))}
               </>
@@ -284,7 +350,10 @@ export default function ListDetailScreen() {
                       key={item.id}
                       item={item}
                       onToggle={() => handleToggleItem(item.id)}
+                      onEdit={() => handleEditItem(item)}
+                      onDelete={() => handleDeleteItem(item)}
                       showBorder={index < checkedItems.length - 1}
+                      showActions={true}
                     />
                   ))}
               </>

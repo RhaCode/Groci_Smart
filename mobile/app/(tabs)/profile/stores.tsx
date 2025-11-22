@@ -1,4 +1,3 @@
-// mobile/app/(tabs)/profile/stores.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import authService, { PreferredStore } from '../../../services/authService';
+import productService, { Store } from '../../../services/productService';
 import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
@@ -21,6 +21,7 @@ import { useTheme } from '../../../context/ThemeContext';
 
 export default function StoresScreen() {
   const [preferredStores, setPreferredStores] = useState<PreferredStore[]>([]);
+  const [allStores, setAllStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAddingStore, setIsAddingStore] = useState(false);
@@ -29,19 +30,11 @@ export default function StoresScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const { theme } = useTheme();
 
-  const [availableStores, setAvailableStores] = useState([
-    { id: 1, name: 'Whole Foods Market', location: 'Downtown' },
-    { id: 2, name: 'Trader Joe\'s', location: 'Midtown' },
-    { id: 3, name: 'Sprouts Farmers Market', location: 'East Side' },
-    { id: 4, name: 'The Fresh Market', location: 'West End' },
-    { id: 5, name: 'Kroger', location: 'Central' },
-  ]);
-
   useEffect(() => {
-    fetchPreferredStores();
+    loadInitialData();
   }, []);
 
-  const fetchPreferredStores = async (refresh: boolean = false) => {
+  const loadInitialData = async (refresh: boolean = false) => {
     try {
       if (refresh) {
         setIsRefreshing(true);
@@ -50,10 +43,17 @@ export default function StoresScreen() {
       }
       setError(null);
       
-      const stores = await authService.getPreferredStores();
-      setPreferredStores(stores);
+      // Fetch both preferred stores and all available stores
+      const [preferred, stores] = await Promise.all([
+        authService.getPreferredStores(),
+        productService.getStores(),
+      ]);
+      
+      setPreferredStores(preferred);
+      setAllStores(stores);
     } catch (err: any) {
-      setError(err.message || 'Failed to load preferred stores');
+      const errorMessage = err.message || 'Failed to load stores';
+      setError(errorMessage);
       console.error('Error fetching stores:', err);
     } finally {
       setIsLoading(false);
@@ -61,12 +61,11 @@ export default function StoresScreen() {
     }
   };
 
-  const handleAddStore = async (store: any) => {
+  const handleAddStore = async (store: Store) => {
     try {
       setIsAddingStore(true);
-      const newStore = await authService.addPreferredStore(store.id);
-      setPreferredStores([...preferredStores, newStore]);
-      setShowAddStore(false);
+      const newPreferredStore = await authService.addPreferredStore(store.id);
+      setPreferredStores([...preferredStores, newPreferredStore]);
       Alert.alert('Success', `${store.name} added to preferred stores`);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to add store');
@@ -88,7 +87,7 @@ export default function StoresScreen() {
             try {
               await authService.removePreferredStore(storeId);
               setPreferredStores((prev) =>
-                prev.filter((store) => store.id !== storeId)
+                prev.filter((store) => store.store_id !== storeId)
               );
               Alert.alert('Success', 'Store removed from preferred stores');
             } catch (err: any) {
@@ -102,13 +101,13 @@ export default function StoresScreen() {
 
   const getAvailableStoresToAdd = () => {
     const preferredStoreIds = preferredStores.map((s) => s.store_id);
-    return availableStores
+    return allStores
       .filter(
         (store) =>
           !preferredStoreIds.includes(store.id) &&
           store.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      .slice(0, 5);
+      .slice(0, 10);
   };
 
   if (isLoading) {
@@ -119,7 +118,7 @@ export default function StoresScreen() {
     return (
       <ErrorMessage
         message={error}
-        onRetry={() => fetchPreferredStores()}
+        onRetry={() => loadInitialData()}
       />
     );
   }
@@ -133,7 +132,7 @@ export default function StoresScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => fetchPreferredStores(true)}
+            onRefresh={() => loadInitialData(true)}
             colors={[theme.colors.accent]}
             tintColor={theme.colors.accent}
           />
@@ -141,7 +140,7 @@ export default function StoresScreen() {
       >
         <View style={{ padding: 16 }}>
           {/* Current Preferred Stores */}
-          <View style={{ marginBottom: 16 }}>
+          <View style={{ marginBottom: 24 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ 
                 fontSize: 18, 
@@ -323,7 +322,8 @@ export default function StoresScreen() {
                               marginLeft: 12, 
                               backgroundColor: theme.colors.accent, 
                               borderRadius: 8, 
-                              padding: 8 
+                              padding: 8,
+                              opacity: isAddingStore ? 0.6 : 1
                             }}
                           >
                             {isAddingStore ? (
@@ -350,6 +350,8 @@ export default function StoresScreen() {
                       }}>
                         {searchQuery
                           ? 'No stores match your search'
+                          : allStores.length === 0 
+                          ? 'No stores available' 
                           : 'All available stores added'}
                       </Text>
                     </View>

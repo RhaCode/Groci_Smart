@@ -101,7 +101,41 @@ export interface ProductFilters {
   page?: number;
 }
 
+export interface StoreCreateData {
+  name: string;
+  location: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface CategoryCreateData {
+  name: string;
+  description?: string;
+  parent?: number;
+}
+
+export interface ProductCreateData {
+  name: string;
+  normalized_name: string;
+  category?: number;
+  brand: string;
+  unit: string;
+  barcode?: string;
+  description?: string;
+}
+
+export interface AddPriceData {
+  product: number;
+  store: number;
+  price: number;
+  date_recorded?: string;
+  source?: string;
+}
+
 class ProductService {
+  // ===================== STORE ENDPOINTS =====================
+
   // Get all stores
   async getStores(): Promise<Store[]> {
     try {
@@ -122,6 +156,38 @@ class ProductService {
     }
   }
 
+  // Create store
+  async createStore(data: StoreCreateData): Promise<Store> {
+    try {
+      const response = await api.post<Store>('/products/stores/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Update store
+  async updateStore(id: number, data: Partial<StoreCreateData>): Promise<Store> {
+    try {
+      const response = await api.patch<Store>(`/products/stores/${id}/update/`, data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Delete store
+  async deleteStore(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete(`/products/stores/${id}/delete/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // ===================== CATEGORY ENDPOINTS =====================
+
   // Get all categories
   async getCategories(): Promise<Category[]> {
     try {
@@ -141,6 +207,38 @@ class ProductService {
       throw handleApiError(error);
     }
   }
+
+  // Create category
+  async createCategory(data: CategoryCreateData): Promise<Category> {
+    try {
+      const response = await api.post<Category>('/products/categories/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Update category
+  async updateCategory(id: number, data: Partial<CategoryCreateData>): Promise<Category> {
+    try {
+      const response = await api.patch<Category>(`/products/categories/${id}/update/`, data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Delete category
+  async deleteCategory(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete(`/products/categories/${id}/delete/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // ===================== PRODUCT ENDPOINTS =====================
 
   // Get all products with filters
   async getProducts(filters?: ProductFilters): Promise<PaginatedResponse<ProductSummary>> {
@@ -170,6 +268,36 @@ class ProductService {
     }
   }
 
+  // Create product
+  async createProduct(data: ProductCreateData): Promise<Product> {
+    try {
+      const response = await api.post<Product>('/products/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Update product
+  async updateProduct(id: number, data: Partial<ProductCreateData>): Promise<Product> {
+    try {
+      const response = await api.patch<Product>(`/products/${id}/update/`, data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Delete product
+  async deleteProduct(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete(`/products/${id}/delete/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
   // Search products
   async searchProducts(params: ProductSearchParams): Promise<ProductSummary[]> {
     try {
@@ -180,6 +308,8 @@ class ProductService {
     }
   }
 
+  // ===================== PRICE ENDPOINTS =====================
+
   // Get product price history
   async getProductPrices(productId: number, storeId?: number): Promise<PriceHistory[]> {
     try {
@@ -187,6 +317,16 @@ class ProductService {
       const response = await api.get<PriceHistory[]>(
         `/products/${productId}/prices/${params}`
       );
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Add price for a product
+  async addPrice(data: AddPriceData): Promise<PriceHistory> {
+    try {
+      const response = await api.post<PriceHistory>('/products/prices/add/', data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -213,22 +353,6 @@ class ProductService {
       const response = await api.post('/products/compare-multiple/', {
         product_ids: productIds,
       });
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  }
-
-  // Add price for a product
-  async addPrice(data: {
-    product: number;
-    store: number;
-    price: number;
-    date_recorded?: string;
-    source?: string;
-  }): Promise<PriceHistory> {
-    try {
-      const response = await api.post<PriceHistory>('/products/prices/add/', data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);

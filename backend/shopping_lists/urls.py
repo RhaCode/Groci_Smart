@@ -20,6 +20,7 @@ urlpatterns = [
     # Shopping list item endpoints
     path('<int:list_id>/items/', views.get_list_items, name='get_list_items'),
     path('<int:list_id>/items/add/', views.add_list_item, name='add_list_item'),
+    path('<int:list_id>/items/<int:item_id>/', views.get_list_item, name='get_list_item'),
     path('<int:list_id>/items/bulk/', views.add_list_items_bulk, name='add_list_items_bulk'),
     path('<int:list_id>/items/<int:item_id>/update/', views.update_list_item, name='update_list_item'),
     path('<int:list_id>/items/<int:item_id>/delete/', views.delete_list_item, name='delete_list_item'),

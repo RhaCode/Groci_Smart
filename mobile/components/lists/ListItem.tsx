@@ -1,6 +1,6 @@
 // mobile/components/lists/ListItem.tsx
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ShoppingListItem } from '../../services/shoppingListService';
 import { useTheme } from '../../context/ThemeContext';
@@ -8,15 +8,19 @@ import { useTheme } from '../../context/ThemeContext';
 interface ListItemProps {
   item: ShoppingListItem;
   onToggle: () => void;
-  onPress?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   showBorder?: boolean;
+  showActions?: boolean;
 }
 
 export const ListItem: React.FC<ListItemProps> = ({
   item,
   onToggle,
-  onPress,
+  onEdit,
+  onDelete,
   showBorder = true,
+  showActions = true,
 }) => {
   const { theme } = useTheme();
 
@@ -28,6 +32,24 @@ export const ListItem: React.FC<ListItemProps> = ({
   const totalPrice = item.estimated_price
     ? (parseFloat(item.quantity) * parseFloat(item.estimated_price)).toFixed(2)
     : null;
+
+  const handleLongPress = () => {
+    if (showActions && (onEdit || onDelete)) {
+      Alert.alert(
+        item.product_name,
+        'Choose an action:',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          onEdit && { text: 'Edit', onPress: onEdit },
+          onDelete && { 
+            text: 'Delete', 
+            style: 'destructive',
+            onPress: onDelete
+          },
+        ].filter(Boolean) as any
+      );
+    }
+  };
 
   return (
     <View
@@ -62,9 +84,9 @@ export const ListItem: React.FC<ListItemProps> = ({
 
       {/* Item Content */}
       <TouchableOpacity
-        onPress={onPress}
+        onPress={onToggle}
+        onLongPress={handleLongPress}
         style={{ flex: 1 }}
-        disabled={!onPress}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <Text
@@ -130,6 +152,28 @@ export const ListItem: React.FC<ListItemProps> = ({
           </Text>
         )}
       </TouchableOpacity>
+
+      {/* Quick Actions (Visible on long press or always if needed) */}
+      {showActions && (onEdit || onDelete) && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
+          {onEdit && (
+            <TouchableOpacity
+              onPress={onEdit}
+              style={{ padding: 4, marginRight: 4 }}
+            >
+              <Ionicons name="pencil-outline" size={18} color={theme.colors['text-muted']} />
+            </TouchableOpacity>
+          )}
+          {onDelete && (
+            <TouchableOpacity
+              onPress={onDelete}
+              style={{ padding: 4 }}
+            >
+              <Ionicons name="trash-outline" size={18} color={theme.colors.warning} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 };

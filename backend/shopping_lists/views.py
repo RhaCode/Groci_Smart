@@ -129,6 +129,15 @@ def duplicate_shopping_list(request, list_id):
 
 
 # ===================== SHOPPING LIST ITEM VIEWS =====================
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_list_item(request, list_id, item_id):
+    """Get a single shopping list item by ID"""
+    shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
+    item = get_object_or_404(ShoppingListItem, id=item_id, shopping_list=shopping_list)
+    
+    serializer = ShoppingListItemSerializer(item)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])

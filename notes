@@ -1,0 +1,21 @@
+Using OpenAI parser...
+OpenAI parsing failed: ChatGPT parsing error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+Using manual receipt parser...
+Extracted Lines:  ["M . D Lin's Supermarket", '101 Mancherster road', 'Mandeville', 'Tel#: (876) 399-9996', '.JA. W. I .', 'Tax ID: 109751655', 'INVOICE# 1053569', 'Closed to Cash Purchase', 'DATE/TIME: 2025/11/20 10:52:07', 'CASHIER: Deniss', 'STATION: 03', '=====', 'Pastry Mini Bulla 85g 12pk-888888010027', '====', '===', '1', 'Counter Flour Plus /1b-02', '¥365.00', '¥365.00', '5', 'Garlic ¥250 PK-029', '¥72.00', '¥360.00', 'Big Foot 25g-098493220005', '¥250.00', '¥250.00', '3', '¥66.67', '¥200.00', 'Motts 100% Juice 200ml-MOTTS', '4', '¥150.00', '¥600.00', 'C&S Chee Zees 45g-040032123513', '3', '¥75.00', '¥225.00', 'Cheese Puffs 20g-098493644184', '3', '¥58.33', '¥175.00', 'G&S Margarine 227g-752046321334', 'Nibbles 60g-054315228529', '1', '¥210.00', '¥210.00', '4', '¥85.00', '¥340.00', 'Tru-Juice 30% 200ml-630887022132', '¥95.00', '¥190.00', 'Refine Cornmeal /1b-06', '2', '¥80.00', '¥80.00', 'Gr Corn Beef 340g-055270961100', '1', '¥600.00', '¥600.00', 'Cheese / IB-085', '¥1,500.00', '¥315.00', 'Shopping Bag #6789 #9779-sb3', '0.210', '¥50.00', '¥50.00', 'Craven A 10 pk-708513023508', '1', '¥700.00', '¥700.00', '1', '====', '==', '¥4,660.00', 'Subtotal', 'GRAND TOTAL', '¥4,660.00', '¥4,660.00']
+Parsed Items:  []
+Manual parsing result: success=True, confidence=medium, items=0
+Created new store: Mandeville
+Created 0 receipt items
+
+
+
+
+Using OpenAI parser...
+OpenAI parsing failed: ChatGPT parsing error: Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-*************here. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+Using manual receipt parser...
+Extracted Lines:  ['ERATED', 'FRESH VALU SUPERMARKET', '-shhh', '38 Manchester Road', 'Mandeville, Manchester', '(876)514-9924', 'Tax Number: 002-942-640', 'SALES INVOICE', 'Invoice No: 100-1007508', 'Time: Oct 20 2023 11:13:21 AM', 'Emp: KAHEILA', 'Reg: POS5', 'DESCRIPTION', '===', 'HUGGIES SNUG & DRY DIAPERS SINGLE CLEAR', 'QTY', 'AMOUNT', '=====', '=======', '2,401.48', '(Discount: 293.08', '2.00 4,802.96G', 'ENFAMIL GENTLEASE 352G', '3,048.17', '(Discount: 481.29', '3.00 9,144.51', 'LASCO BABY 3 CEREAL 210G 12/CS', 'LASCO BABY CEREAL W/CORN 210G 12/CS', '357.41', '1.00', '357.41G', '357.41', 'LASCO BABY 5 CEREAL 210G 12/CS', '1.00', '357.41G', '357.41', '1.00', '357.41G', 'PURLENE NURS. JELLY ASSORT 410G 12/CS', '694.06 1.00', '694.06G', 'MOTTS APPLE 100% JUICE 6×4× 80Z', '232.46', '4.00', '929.82G', '(Discount: 25.01', 'COLGATE KIDS T/PASTE 50GM', '171.63', '1.00', '171.63G', 'PEARS SOAP ASSORTED 4.40Z', '181.88', '3.00', '545.63', '(Discount: 16.87', 'WATA 1L 12/CS', '89.88', '12.00', 'Y.078.60G', '(Discount: 106.46', 'BAG 100', '100.00', '1.00', '140.00', 'SUNSHINE CASHEW 47G 48/CS', '214.72', '1.00', '214.72G', '----', 'Subtotal', '17,584.93', 'GCT', '1,169.23', 'Total', '18.754.16', 'DEBIT CARD', '18,754.16', 'Change', '0.00', '=======', '====', 'YOU SAVED 922.71', 'Thank you for shopping at Fresh Valu', 'Supermarket Ltd.', 'Refunds and Exchange only within 7 days', 'of purchase', 'TEL : (876)514-9924']
+Parsed Items:  [{'name': 'ENFAMIL GENTLEASE 352G', 'normalized_name': 'enfamil gentlease 352g', 'brand': 'ENFAMIL', 'quantity': Decimal('3.00'), 'unit': '', 'unit_price': Decimal('3048.17'), 'total_price': Decimal('9144.51'), 'category': 'Baby Care'}, {'name': 'PURLENE NURS. JELLY ASSORT 410G 12/CS', 'normalized_name': 'purlene nurs. jelly assort 410g 12/cs', 'brand': 'PURLENE', 'quantity': Decimal('694.06'), 'unit': '', 'unit_price': Decimal('0.001440797625565513068034463879'), 'total_price': Decimal('1.00'), 'category': 'Groceries'}]
+Manual parsing result: success=True, confidence=high, items=2
+Found existing product: ENFAMIL GENTLEASE 352G
+Created new product: PURLENE NURS. JELLY ASSORT 410G 12/CS
+Created 2 receipt items

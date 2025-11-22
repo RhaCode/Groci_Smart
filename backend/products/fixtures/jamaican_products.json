@@ -1,0 +1,379 @@
+{
+  "stores": [
+    {
+      "name": "Supermarket Jamaica - New Kingston",
+      "location": "New Kingston",
+      "address": "60 Knutsford Boulevard, Kingston 5",
+      "latitude": "18.0176",
+      "longitude": "-76.8061"
+    },
+    {
+      "name": "Hi-Lo Food Stores - Half Way Tree",
+      "location": "Half Way Tree",
+      "address": "1 Constant Spring Road, Kingston 10",
+      "latitude": "18.0226",
+      "longitude": "-76.7944"
+    },
+    {
+      "name": "Marketplace - Montego Bay",
+      "location": "Montego Bay",
+      "address": "Harbour Street, Montego Bay, St. James",
+      "latitude": "18.4716",
+      "longitude": "-77.9186"
+    },
+    {
+      "name": "Island Grill - Downtown Kingston",
+      "location": "Downtown Kingston",
+      "address": "King Street, Kingston",
+      "latitude": "18.0083",
+      "longitude": "-76.8152"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Produce",
+      "description": "Fresh fruits and vegetables"
+    },
+    {
+      "name": "Dairy",
+      "description": "Milk, cheese, yogurt, and dairy products"
+    },
+    {
+      "name": "Meat & Seafood",
+      "description": "Fresh and frozen meats, chicken, and seafood"
+    },
+    {
+      "name": "Pantry Staples",
+      "description": "Rice, flour, sugar, salt, and other staples"
+    },
+    {
+      "name": "Beverages",
+      "description": "Juices, water, soft drinks, and beverages"
+    },
+    {
+      "name": "Snacks",
+      "description": "Chips, crackers, and other snack items"
+    },
+    {
+      "name": "Canned Goods",
+      "description": "Canned fruits, vegetables, and prepared foods"
+    }
+  ],
+  "products": [
+    {
+      "name": "Ackee (fresh, 1 lb)",
+      "normalized_name": "ackee_fresh_1lb",
+      "category": "Produce",
+      "brand": "Local",
+      "unit": "lb",
+      "description": "Fresh ackee from Jamaica"
+    },
+    {
+      "name": "Callaloo (1 bunch)",
+      "normalized_name": "callaloo_1bunch",
+      "category": "Produce",
+      "brand": "Local",
+      "unit": "bunch",
+      "description": "Fresh callaloo greens"
+    },
+    {
+      "name": "Cho Cho (christophene, 3 pack)",
+      "normalized_name": "cho_cho_3pack",
+      "category": "Produce",
+      "brand": "Local",
+      "unit": "pack",
+      "description": "Fresh cho cho (christophene)"
+    },
+    {
+      "name": "Sweet Potato (per lb)",
+      "normalized_name": "sweet_potato_perlb",
+      "category": "Produce",
+      "brand": "Local",
+      "unit": "lb",
+      "description": "Fresh sweet potato"
+    },
+    {
+      "name": "Flour - All Purpose (5 lb)",
+      "normalized_name": "flour_allpurpose_5lb",
+      "category": "Pantry Staples",
+      "brand": "Champion",
+      "unit": "lb",
+      "description": "All-purpose flour"
+    },
+    {
+      "name": "Rice - Long Grain (2 kg)",
+      "normalized_name": "rice_longgrain_2kg",
+      "category": "Pantry Staples",
+      "brand": "Parboiled",
+      "unit": "kg",
+      "description": "Long grain parboiled rice"
+    },
+    {
+      "name": "Sugar - White Granulated (5 lb)",
+      "normalized_name": "sugar_white_5lb",
+      "category": "Pantry Staples",
+      "brand": "Bustamante",
+      "unit": "lb",
+      "description": "White granulated sugar"
+    },
+    {
+      "name": "Canned Red Kidney Beans (400g)",
+      "normalized_name": "canned_kidney_beans_400g",
+      "category": "Canned Goods",
+      "brand": "Libby's",
+      "unit": "g",
+      "description": "Red kidney beans in brine"
+    },
+    {
+      "name": "Canned Corned Beef (340g)",
+      "normalized_name": "canned_corned_beef_340g",
+      "category": "Canned Goods",
+      "brand": "Star",
+      "unit": "g",
+      "description": "Canned corned beef"
+    },
+    {
+      "name": "Evaporated Milk (370ml)",
+      "normalized_name": "evaporated_milk_370ml",
+      "category": "Dairy",
+      "brand": "Condensada",
+      "unit": "ml",
+      "description": "Evaporated milk"
+    },
+    {
+      "name": "Fresh Milk (1 liter)",
+      "normalized_name": "fresh_milk_1liter",
+      "category": "Dairy",
+      "brand": "Serge Island",
+      "unit": "L",
+      "description": "Fresh whole milk"
+    },
+    {
+      "name": "Cheddar Cheese (200g)",
+      "normalized_name": "cheddar_cheese_200g",
+      "category": "Dairy",
+      "brand": "Jamaica Cheese",
+      "unit": "g",
+      "description": "Cheddar cheese block"
+    },
+    {
+      "name": "Orange Juice (1 liter)",
+      "normalized_name": "orange_juice_1liter",
+      "category": "Beverages",
+      "brand": "Juicy",
+      "unit": "L",
+      "description": "Fresh orange juice"
+    },
+    {
+      "name": "Ting (Grapefruit Soda, 2L)",
+      "normalized_name": "ting_grapefruit_2l",
+      "category": "Beverages",
+      "brand": "Ting",
+      "unit": "L",
+      "description": "Jamaican grapefruit soda"
+    },
+    {
+      "name": "Coconut Water (1 liter)",
+      "normalized_name": "coconut_water_1liter",
+      "category": "Beverages",
+      "brand": "Island Spring",
+      "unit": "L",
+      "description": "Pure coconut water"
+    },
+    {
+      "name": "Ackee & Saltfish (canned, 425g)",
+      "normalized_name": "ackee_saltfish_canned_425g",
+      "category": "Canned Goods",
+      "brand": "Finest",
+      "unit": "g",
+      "description": "Ready-to-eat ackee and saltfish"
+    },
+    {
+      "name": "Mackerel (canned, 425g)",
+      "normalized_name": "mackerel_canned_425g",
+      "category": "Canned Goods",
+      "brand": "King Tuna",
+      "unit": "g",
+      "description": "Canned mackerel in oil"
+    },
+    {
+      "name": "Plantain Chips (150g)",
+      "normalized_name": "plantain_chips_150g",
+      "category": "Snacks",
+      "brand": "Caribbean",
+      "unit": "g",
+      "description": "Crispy plantain chips"
+    },
+    {
+      "name": "Crackers - Excelsior (350g)",
+      "normalized_name": "crackers_excelsior_350g",
+      "category": "Snacks",
+      "brand": "Excelsior",
+      "unit": "g",
+      "description": "Traditional Jamaican crackers"
+    }
+  ],
+  "prices": [
+    {
+      "product_name": "Ackee (fresh, 1 lb)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 850.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Ackee (fresh, 1 lb)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 820.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Callaloo (1 bunch)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 180.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Callaloo (1 bunch)",
+      "store_name": "Marketplace - Montego Bay",
+      "price": 150.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Cho Cho (christophene, 3 pack)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 320.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Sweet Potato (per lb)",
+      "store_name": "Island Grill - Downtown Kingston",
+      "price": 95.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Flour - All Purpose (5 lb)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 650.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Flour - All Purpose (5 lb)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 630.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Rice - Long Grain (2 kg)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 920.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Rice - Long Grain (2 kg)",
+      "store_name": "Marketplace - Montego Bay",
+      "price": 950.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Sugar - White Granulated (5 lb)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 580.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Canned Red Kidney Beans (400g)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 185.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Canned Corned Beef (340g)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 420.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Evaporated Milk (370ml)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 215.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Fresh Milk (1 liter)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 680.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Cheddar Cheese (200g)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 890.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Orange Juice (1 liter)",
+      "store_name": "Marketplace - Montego Bay",
+      "price": 450.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Ting (Grapefruit Soda, 2L)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 520.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Coconut Water (1 liter)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 380.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Ackee & Saltfish (canned, 425g)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 685.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Mackerel (canned, 425g)",
+      "store_name": "Hi-Lo Food Stores - Half Way Tree",
+      "price": 245.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Plantain Chips (150g)",
+      "store_name": "Marketplace - Montego Bay",
+      "price": 320.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    },
+    {
+      "product_name": "Crackers - Excelsior (350g)",
+      "store_name": "Supermarket Jamaica - New Kingston",
+      "price": 275.00,
+      "date_recorded": "2024-11-22",
+      "source": "manual"
+    }
+  ]
+}
