@@ -173,33 +173,39 @@ class AzureOCRService:
             }
     
     @staticmethod
-    def process_receipt_ocr(receipt):
+    def process_receipt_ocr(receipt, extract_text=True):
         """
-        Process receipt image with OCR and extract data using OpenAI or fallback parser
+        Process receipt with OCR and extract data.
         
         Args:
             receipt: Receipt model instance
+            extract_text: If True, extract text from image. If False, use already extracted text.
         """
         from receipts.models import ReceiptItem
-        from products.models import Store, Product, Category, PriceHistory
+        # from products.models import Store, Product, Category, PriceHistory
         
         receipt.status = 'processing'
         receipt.save()
         
         try:
-            # Step 1: Extract text using Azure OCR
-            ocr_service = AzureOCRService()
-            ocr_result = ocr_service.extract_text_from_image(receipt.receipt_image.path)
-            
-            if not ocr_result['success']:
-                raise Exception(ocr_result['error'])
-            
-            # Save OCR text
-            receipt.ocr_text = ocr_result['text']
-            receipt.save()
+            # Step 1: Extract text using Azure OCR (only if extract_text is True)
+            if extract_text:
+                ocr_service = AzureOCRService()
+                ocr_result = ocr_service.extract_text_from_image(receipt.receipt_image.path)
+                
+                if not ocr_result['success']:
+                    raise Exception(ocr_result['error'])
+                
+                # Save OCR text
+                receipt.ocr_text = ocr_result['text']
+                receipt.save()
+            else:
+                # Use already extracted text for reprocessing
+                if not receipt.ocr_text:
+                    raise Exception('No OCR text available for reprocessing')
             
             # Step 2: Parse receipt data using OpenAI or fallback to manual parser
-            parsed_data = AzureOCRService._parse_receipt_with_fallback(ocr_result['text'])
+            parsed_data = AzureOCRService._parse_receipt_with_fallback(receipt.ocr_text)
             
             # Check if it's a valid receipt
             if not parsed_data.get('success') or not parsed_data.get('is_receipt'):
@@ -226,26 +232,26 @@ class AzureOCRService:
                 receipt.save()
                 
                 # Step 4: Get or create store
-                store = None
-                if receipt.store_name:
-                    store, created = Store.objects.get_or_create(
-                        name=receipt.store_name,
-                        defaults={'location': receipt.store_location or ''}
-                    )
-                    if created:
-                        print(f"Created new store: {store.name}")
+                # store = None
+                # if receipt.store_name:
+                #     store, created = Store.objects.get_or_create(
+                #         name=receipt.store_name,
+                #         defaults={'location': receipt.store_location or ''}
+                #     )
+                #     if created:
+                #         print(f"Created new store: {store.name}")
                 
                 # Step 5: Create receipt items and products
                 items_created = 0
                 if parsed_data.get('items'):
                     for item_data in parsed_data['items']:
                         # Try to find or create the product
-                        product = AzureOCRService._get_or_create_product(item_data)
+                        # product = AzureOCRService._get_or_create_product(item_data)
                         
                         # Create receipt item
                         receipt_item = ReceiptItem.objects.create(
                             receipt=receipt,
-                            product=product,
+                            product=None,  # product,
                             product_name=item_data['name'],
                             normalized_name=item_data.get('normalized_name', item_data['name'].lower()),
                             quantity=item_data['quantity'],
@@ -255,17 +261,17 @@ class AzureOCRService:
                         items_created += 1
                         
                         # Step 6: Update price history if we have a store and product
-                        if store and product:
-                            PriceHistory.objects.update_or_create(
-                                product=product,
-                                store=store,
-                                date_recorded=receipt.purchase_date or timezone.now().date(),
-                                defaults={
-                                    'price': item_data['unit_price'],
-                                    'source': 'receipt',
-                                    'is_active': True
-                                }
-                            )
+                        # if store and product:
+                        #     PriceHistory.objects.update_or_create(
+                        #         product=product,
+                        #         store=store,
+                        #         date_recorded=receipt.purchase_date or timezone.now().date(),
+                        #         defaults={
+                        #             'price': item_data['unit_price'],
+                        #             'source': 'receipt',
+                        #             'is_active': True
+                        #         }
+                        #     )
                 
                 print(f"Created {items_created} receipt items")
                 
@@ -279,54 +285,54 @@ class AzureOCRService:
             receipt.save()
             raise
     
-    @staticmethod
-    def _get_or_create_product(item_data):
-        """
-        Find existing product or create new one from receipt item data
-        
-        Args:
-            item_data: Dict with product information from parsed receipt
-            
-        Returns:
-            Product instance
-        """
-        from products.models import Product, Category
-        
-        normalized_name = item_data.get('normalized_name', item_data['name'].lower())
-        brand = item_data.get('brand', '')
-        
-        # Try to find existing product by normalized name and brand
-        query = Product.objects.filter(normalized_name=normalized_name)
-        if brand:
-            query = query.filter(brand__iexact=brand)
-        
-        existing_product = query.first()
-        
-        if existing_product:
-            print(f"Found existing product: {existing_product.name}")
-            return existing_product
-        
-        # Try to find/create category
-        category = None
-        category_name = item_data.get('category', '')
-        if category_name:
-            category, created = Category.objects.get_or_create(
-                name=category_name,
-                defaults={'description': f'Auto-created from receipt parsing'}
-            )
-            if created:
-                print(f"Created new category: {category.name}")
-        
-        # Create new product
-        product = Product.objects.create(
-            name=item_data['name'],
-            normalized_name=normalized_name,
-            brand=brand,
-            unit=item_data.get('unit', ''),
-            category=category,
-            description='Auto-created from receipt',
-            is_active=True
-        )
-        
-        print(f"Created new product: {product.name}")
-        return product
+    # @staticmethod
+    # def _get_or_create_product(item_data):
+    #     """
+    #     Find existing product or create new one from receipt item data
+    #     
+    #     Args:
+    #         item_data: Dict with product information from parsed receipt
+    #         
+    #     Returns:
+    #         Product instance
+    #     """
+    #     from products.models import Product, Category
+    #     
+    #     normalized_name = item_data.get('normalized_name', item_data['name'].lower())
+    #     brand = item_data.get('brand', '')
+    #     
+    #     # Try to find existing product by normalized name and brand
+    #     query = Product.objects.filter(normalized_name=normalized_name)
+    #     if brand:
+    #         query = query.filter(brand__iexact=brand)
+    #     
+    #     existing_product = query.first()
+    #     
+    #     if existing_product:
+    #         print(f"Found existing product: {existing_product.name}")
+    #         return existing_product
+    #     
+    #     # Try to find/create category
+    #     category = None
+    #     category_name = item_data.get('category', '')
+    #     if category_name:
+    #         category, created = Category.objects.get_or_create(
+    #             name=category_name,
+    #             defaults={'description': f'Auto-created from receipt parsing'}
+    #         )
+    #         if created:
+    #             print(f"Created new category: {category.name}")
+    #     
+    #     # Create new product
+    #     product = Product.objects.create(
+    #         name=item_data['name'],
+    #         normalized_name=normalized_name,
+    #         brand=brand,
+    #         unit=item_data.get('unit', ''),
+    #         category=category,
+    #         description='Auto-created from receipt',
+    #         is_active=True
+    #     )
+    #     
+    #     print(f"Created new product: {product.name}")
+    #     return product

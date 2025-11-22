@@ -76,9 +76,9 @@ def upload_receipt(request):
     if serializer.is_valid():
         receipt = serializer.save()
         
-        # Trigger OCR processing
+        # Trigger OCR processing with text extraction
         try:
-            AzureOCRService.process_receipt_ocr(receipt)
+            AzureOCRService.process_receipt_ocr(receipt, extract_text=True)
         except Exception as e:
             receipt.status = 'failed'
             receipt.processing_error = str(e)
@@ -90,6 +90,36 @@ def upload_receipt(request):
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def reprocess_receipt(request, receipt_id):
+    """Reprocess receipt using already extracted OCR text"""
+    receipt = get_object_or_404(Receipt, id=receipt_id, user=request.user)
+    
+    try:
+        # Clear existing items before reprocessing
+        receipt.items.all().delete()
+        
+        receipt.status = 'processing'
+        receipt.processing_error = ''
+        receipt.save()
+        
+        # Reprocess without extracting text (uses existing ocr_text)
+        AzureOCRService.process_receipt_ocr(receipt, extract_text=False)
+        
+        return Response(
+            ReceiptSerializer(receipt, context={'request': request}).data,
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        receipt.status = 'failed'
+        receipt.processing_error = str(e)
+        receipt.save()
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 @api_view(['PUT', 'PATCH'])
 @permission_classes([permissions.IsAuthenticated])
@@ -116,37 +146,6 @@ def delete_receipt(request, receipt_id):
     
     receipt.delete()
     return Response({'message': 'Receipt deleted successfully'}, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def reprocess_receipt(request, receipt_id):
-    """Reprocess receipt OCR"""
-    receipt = get_object_or_404(Receipt, id=receipt_id, user=request.user)
-    
-    try:
-        # Clear existing items before reprocessing
-        receipt.items.all().delete()
-        
-        receipt.status = 'processing'
-        receipt.processing_error = ''
-        receipt.save()
-        
-        AzureOCRService.process_receipt_ocr(receipt)
-        
-        return Response(
-            ReceiptSerializer(receipt, context={'request': request}).data,
-            status=status.HTTP_200_OK
-        )
-    except Exception as e:
-        receipt.status = 'failed'
-        receipt.processing_error = str(e)
-        receipt.save()
-        return Response(
-            {'error': str(e)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
 
 # ===================== RECEIPT ITEM VIEWS =====================
 
