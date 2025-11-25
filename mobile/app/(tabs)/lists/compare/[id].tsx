@@ -146,7 +146,7 @@ export default function PriceComparisonScreen() {
         <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
           <View style={{ alignItems: 'center', marginBottom: 16 }}>
             <Text style={{ color: theme.colors['text-secondary'], marginBottom: 8 }}>Shopping at</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
               <View style={{ 
                 backgroundColor: `${theme.colors.success}20`, 
                 borderRadius: 9999, 

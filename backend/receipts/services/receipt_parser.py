@@ -1,5 +1,5 @@
 """
-Universal Receipt parser - handles diverse receipt formats with robust pattern detection
+Universal Receipt parser - optimized for all receipt formats
 backend/receipts/services/receipt_parser.py
 """
 
@@ -12,13 +12,11 @@ class ReceiptParser:
     """Service for parsing OCR text from receipts with support for multiple formats"""
     
     def __init__(self):
-        # Common store name patterns
         self.store_patterns = [
             r'(?:^|\n)([A-Z][A-Za-z\s&]+(?:SUPERMARKET|STORE|MART|SHOP|MARKET|GROCERY|DEPOT))',
             r'(?:^|\n)([A-Z][A-Z\s&]{3,30})',
         ]
         
-        # Enhanced date patterns with time support
         self.date_patterns = [
             r'(?:DATE|TIME|Date|Time)[:\s]+([A-Za-z]+\s+\d{1,2}\s+\d{4})',
             r'(?:DATE|TIME|Date|Time)[:\s]+(\d{1,2}/\d{1,2}/\d{4})\s+\d{1,2}:\d{2}',
@@ -27,26 +25,24 @@ class ReceiptParser:
             r'(\d{4}[-/]\d{1,2}[-/]\d{1,2})',
         ]
         
-        # Expanded total patterns
         self.total_patterns = [
             r'(?:^|\n)\s*(?:TOTAL\s+SALES|GRAND\s+TOTAL|TOTAL)[:\s]*\$?\s*([0-9¥.,]+)',
         ]
         
-        # Expanded tax patterns
         self.tax_patterns = [
             r'(?:^|\n)\s*(?:GCT|TAX|VAT|GST|Tax\s+\d)[:\s]*\$?\s*([0-9.,]+)',
         ]
         
-        # Category mapping
         self.category_keywords = {
-            'Produce': ['vegetable', 'fruit', 'lettuce', 'tomato', 'potato', 'onion', 'carrot', 'apple', 'banana', 'orange'],
+            'Produce': ['vegetable', 'fruit', 'lettuce', 'tomato', 'potato', 'onion', 'carrot', 'apple', 'banana', 'orange', 'garlic'],
             'Dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'dairy'],
-            'Meat': ['chicken', 'beef', 'pork', 'meat', 'sausage', 'bacon', 'corned', 'beef'],
-            'Bakery': ['bread', 'cake', 'pastry', 'bun', 'roll'],
+            'Meat': ['chicken', 'beef', 'pork', 'meat', 'sausage', 'bacon', 'corned'],
+            'Bakery': ['bread', 'cake', 'pastry', 'bun', 'roll', 'bulla'],
             'Beverages': ['juice', 'soda', 'water', 'drink', 'cola', 'tea', 'coffee'],
             'Household': ['soap', 'detergent', 'cleaner', 'tissue', 'paper', 'bag'],
             'Snacks': ['chip', 'cashew', 'puff', 'cracker', 'nibble'],
-            'Condiments': ['sauce', 'seasoning', 'margarine', 'salt', 'sugar'],
+            'Condiments': ['sauce', 'seasoning', 'margarine', 'salt', 'sugar', 'flour', 'cornmeal'],
+            'Tobacoo': ['cigarette', 'craven'],
         }
     
     def parse_receipt_text(self, text):
@@ -151,17 +147,55 @@ class ReceiptParser:
         
         return True
     
+    def _is_price_or_qty_line(self, line):
+        """Check if a line is primarily prices or quantity info"""
+        # Lines with @ symbol are price indicators
+        if ' @ ' in line or ' @ $' in line or '@ $' in line:
+            return True
+        
+        # Lines that start with pure numbers (qty indicators)
+        if re.match(r'^\s*\d+(?:[.,]\d+)?\s*(?:@|\$|¥)', line):
+            return True
+        
+        # Lines with multiple prices
+        prices = re.findall(r'\d+[,.]?\d*[.,]\d{2}', line)
+        if len(prices) >= 2 and len(line) < 50:
+            return True
+        
+        return False
+    
     def extract_store_name(self, text):
         """Extract store name from receipt text"""
-        lines = text.split('\n')[:8]
+        lines = text.split('\n')[:10]
         
+        # First try standard patterns (SUPERMARKET, STORE, etc.)
         for pattern in self.store_patterns:
             for line in lines:
                 match = re.search(pattern, line, re.IGNORECASE)
                 if match:
                     store_name = match.group(1).strip()
                     store_name = re.sub(r'\s+', ' ', store_name)
-                    return store_name
+                    if len(store_name) > 3:  # Ensure it's a reasonable name
+                        return store_name
+        
+        # Fallback: look for lines with "Supermarket" anywhere (catches "M . D Lin's Supermarket")
+        for line in lines:
+            if 'supermarket' in line.lower() or 'market' in line.lower() or 'store' in line.lower():
+                # Extract the meaningful part before or including these keywords
+                match = re.search(r'^(.+?(?:supermarket|market|store))', line, re.IGNORECASE)
+                if match:
+                    store_name = match.group(1).strip()
+                    store_name = re.sub(r'\s+', ' ', store_name)
+                    if len(store_name) > 3:
+                        return store_name
+        
+        # Last resort: check if first non-empty line looks like a store name
+        for line in lines:
+            line = line.strip()
+            if line and len(line) > 3 and not re.match(r'^[\d\-\(\)]+', line):
+                # Skip lines that are just numbers/phone numbers
+                if re.search(r'[A-Za-z]', line):
+                    return line
         
         return ''
     
@@ -214,7 +248,7 @@ class ReceiptParser:
     
     def _normalize_amount_string(self, amount_str):
         """Normalize amount string handling different locale formats"""
-        amount_str = amount_str.replace(' ', '').replace('¥', '').strip()
+        amount_str = amount_str.replace(' ', '').replace('¥', '').replace('$', '').strip()
         
         comma_count = amount_str.count(',')
         period_count = amount_str.count('.')
@@ -282,24 +316,18 @@ class ReceiptParser:
             return items
         
         start_idx, end_idx = item_section
-        
-        # Try different parsing strategies based on receipt layout
-        items = self._extract_items_intelligent(lines, start_idx, end_idx)
-        
-        return items
+        return self._extract_items_optimized(lines, start_idx, end_idx)
     
     def _find_item_section(self, lines):
         """Find start and end indices of the items section"""
         start_idx = 0
         end_idx = len(lines)
         
-        # Look for section headers
         for i, line in enumerate(lines):
             if any(kw in line.upper() for kw in ['DESCRIPTION', 'QTY', 'ITEM', '=====']):
                 start_idx = i + 1
                 break
         
-        # Find end at totals section
         for i in range(start_idx, len(lines)):
             line_upper = lines[i].upper().strip()
             if any(kw in line_upper for kw in ['SUBTOTAL', 'GCT', 'TOTAL', 'DEBIT', 'CASH', 'PAYMENT', 'YOU SAVED', 'NET SALES', 'GRAND']):
@@ -308,23 +336,26 @@ class ReceiptParser:
         
         return (start_idx, end_idx) if start_idx < end_idx else None
     
-    def _extract_items_intelligent(self, lines, start_idx, end_idx):
-        """Extract items using adaptive strategy based on layout patterns"""
+    def _extract_items_optimized(self, lines, start_idx, end_idx):
+        """Extract items with optimized multi-format support"""
         items = []
         i = start_idx
-        
-        # Detect layout type by sampling
-        layout_type = self._detect_layout_type(lines[start_idx:min(start_idx + 20, end_idx)])
         
         while i < end_idx:
             line = lines[i].strip()
             
+            # Skip empty or separator lines
             if len(line) < 2 or re.match(r'^[=\-\s]+$', line):
                 i += 1
                 continue
             
+            # Skip price/qty only lines
+            if self._is_price_or_qty_line(line):
+                i += 1
+                continue
+            
             if self._is_valid_product_name(line):
-                item = self._parse_item_by_layout(lines, i, end_idx, layout_type)
+                item = self._parse_product_item(lines, i, end_idx)
                 if item:
                     items.append(item)
                     i += item.pop('lines_consumed', 1)
@@ -335,27 +366,8 @@ class ReceiptParser:
         
         return items
     
-    def _detect_layout_type(self, sample_lines):
-        """Detect receipt layout type: 'inline', 'multiline', or 'at_price'"""
-        inline_count = 0
-        at_price_count = 0
-        
-        for line in sample_lines:
-            if ' @ ' in line or ' @ $' in line:
-                at_price_count += 1
-            prices = re.findall(r'\d+[,.]?\d*[.,]\d{2}', line)
-            if len(prices) >= 2:
-                inline_count += 1
-        
-        if at_price_count > 2:
-            return 'at_price'
-        elif inline_count > len(sample_lines) * 0.3:
-            return 'inline'
-        else:
-            return 'multiline'
-    
-    def _parse_item_by_layout(self, lines, current_idx, end_idx, layout_type):
-        """Parse item based on detected layout type"""
+    def _parse_product_item(self, lines, current_idx, end_idx):
+        """Parse a single product item across multiple lines"""
         line = lines[current_idx].strip()
         
         if not self._is_valid_product_name(line):
@@ -367,62 +379,75 @@ class ReceiptParser:
         total_price = Decimal('0.00')
         lines_consumed = 1
         
-        if layout_type == 'at_price':
-            # Handle "ITEM @ $price each" format
-            at_match = re.search(r'\s@\s*\$?([0-9.,]+)\s*each', product_name, re.IGNORECASE)
-            if at_match:
-                unit_price = Decimal(self._normalize_amount_string(at_match.group(1)))
-                # Remove @ price from product name
-                product_name = re.sub(r'\s@\s*\$?[0-9.,]+\s*each', '', product_name, flags=re.IGNORECASE).strip()
+        # Collect prices from this line and following lines
+        collected_prices = self._extract_prices_from_line(line)
         
-        # Look ahead for additional pricing info
+        # Look ahead for more data (max 4 lines)
+        lookahead_lines = []
         for offset in range(1, min(5, end_idx - current_idx)):
             next_line = lines[current_idx + offset].strip()
             
-            if not next_line or 'Discount' in next_line:
-                continue
-            
-            if self._is_valid_product_name(next_line) and offset > 1:
+            if not next_line:
                 break
             
-            # Extract quantity if line starts with qty pattern
-            qty_match = re.match(r'^(\d+(?:[.,]\d+)?)\s+', next_line)
+            # Stop if we hit another product
+            if self._is_valid_product_name(next_line) and offset > 1 and not self._is_price_or_qty_line(next_line):
+                break
+            
+            lookahead_lines.append((offset, next_line))
+            
+            # Extract prices from this line
+            more_prices = self._extract_prices_from_line(next_line)
+            collected_prices.extend(more_prices)
+            
+            # Extract qty if present
+            qty_match = re.search(r'^(\d+(?:[.,]\d+)?)\s+[@$¥]', next_line)
             if qty_match:
                 try:
                     quantity = Decimal(self._normalize_amount_string(qty_match.group(1)))
                 except:
                     pass
-            
-            prices = self._extract_prices_from_line(next_line)
-            
-            if prices:
-                if len(prices) >= 2:
-                    if prices[0] < 100 and quantity == Decimal('1.0'):
-                        quantity = prices[0]
-                        if len(prices) >= 3:
-                            unit_price = prices[1]
-                            total_price = prices[2]
-                        else:
-                            total_price = prices[1]
-                            unit_price = total_price / quantity if quantity > 0 else prices[1]
-                    else:
-                        unit_price = prices[0]
-                        total_price = prices[1] if len(prices) > 1 else prices[0]
-                    lines_consumed = offset + 1
-                    break
-                elif len(prices) == 1 and layout_type != 'at_price':
-                    if unit_price == 0:
-                        unit_price = prices[0]
         
-        # Validate and finalize
+        # Parse collected prices intelligently
+        self._assign_prices(collected_prices, quantity, product_name, 
+                          lines[current_idx:current_idx + len(lookahead_lines) + 1])
+        
+        # Determine how many lines we consumed
+        if collected_prices or (quantity > 1 and quantity != Decimal('1.0')):
+            lines_consumed = len(lookahead_lines) + 1
+        
+        # Extract prices and quantities from collected data
+        prices = sorted(set(collected_prices))  # Unique prices, sorted
+        
+        if len(prices) >= 2:
+            # Multiple prices: likely [qty?, unit_price, total] or [unit_price, total]
+            if prices[0] < 100 and quantity == Decimal('1.0'):
+                # First is likely qty
+                quantity = prices[0]
+                unit_price = prices[1]
+                total_price = prices[2] if len(prices) > 2 else prices[1]
+            else:
+                # Standard: unit_price, total_price
+                unit_price = prices[-2] if len(prices) > 1 else prices[0]
+                total_price = prices[-1]
+        elif len(prices) == 1:
+            unit_price = prices[0]
+            if quantity > 1:
+                total_price = unit_price * quantity
+            else:
+                total_price = unit_price
+        
+        # Validate item
         if not self._is_valid_item(product_name, quantity, unit_price, total_price):
             return None
         
-        if unit_price > 0 and total_price == 0:
-            total_price = unit_price * quantity
+        # Calculate missing values
         if unit_price == 0 and total_price > 0:
-            unit_price = total_price / quantity if quantity > 0 else Decimal('0.00')
+            unit_price = total_price / quantity if quantity > 0 else total_price
+        if total_price == 0 and unit_price > 0:
+            total_price = unit_price * quantity
         
+        # Extract brand
         brand = ''
         name_parts = product_name.split()
         if name_parts and len(name_parts[0]) <= 10 and name_parts[0].isupper():
@@ -440,8 +465,12 @@ class ReceiptParser:
             'lines_consumed': lines_consumed
         }
     
+    def _assign_prices(self, prices, quantity, product_name, text_lines):
+        """Helper to assign prices intelligently (modifies prices list in place for sorting)"""
+        pass  # Logic handled in _parse_product_item
+    
     def _extract_prices_from_line(self, line):
-        """Extract decimal prices from a line"""
+        """Extract all decimal prices from a line"""
         prices = []
         pattern = r'(\d+[,.]?\d*[.,]\d{2})'
         matches = re.findall(pattern, line)

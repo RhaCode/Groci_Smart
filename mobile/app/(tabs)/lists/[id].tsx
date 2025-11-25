@@ -1,5 +1,5 @@
 // mobile/app/(tabs)/lists/[id].tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import shoppingListService, { ShoppingList, ShoppingListItem } from '../../../services/shoppingListService';
 import { Card } from '../../../components/ui/Card';
@@ -27,12 +27,30 @@ export default function ListDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(true);
   const { theme } = useTheme();
+  
+  // Track if this is the initial mount
+  const isInitialMount = useRef(true);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (id) {
       fetchList();
     }
   }, [id]);
+
+  // Auto-reload when screen comes into focus (but not on initial mount)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+      
+      if (id) {
+        fetchList(true);
+      }
+    }, [id])
+  );
 
   const fetchList = async (refresh: boolean = false) => {
     try {
