@@ -330,7 +330,7 @@ def get_pending_products(request):
         is_approved=False
     ).select_related('category').order_by('-created_at')
     
-    serializer = ProductSerializer(products, many=True)
+    serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)
 
 

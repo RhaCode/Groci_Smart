@@ -6,16 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   TextInput,
   Alert,
-  Modal,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import productService, { Product } from '../../../../../services/productService';
+import productService, { ProductSummary } from '../../../../../services/productService';
 import { Card } from '../../../../../components/ui/Card';
-import { Button } from '../../../../../components/ui/Button';
 import { LoadingSpinner } from '../../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../../components/ui/ErrorMessage';
 import { useTheme } from '../../../../../context/ThemeContext';
@@ -27,7 +24,7 @@ interface FilterOptions {
 
 export default function AdminProductsScreen() {
   const { theme } = useTheme();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +45,7 @@ export default function AdminProductsScreen() {
         setError(null);
       }
 
-      let allProducts: Product[] = [];
+      let allProducts: ProductSummary[] = [];
 
       if (filters.showPending) {
         const pending = await productService.getPendingProducts();
@@ -60,7 +57,12 @@ export default function AdminProductsScreen() {
         allProducts = [...allProducts, ...approved.results];
       }
 
-      setProducts(allProducts);
+      // Remove duplicates by ID
+      const uniqueProducts = Array.from(
+        new Map(allProducts.map(p => [p.id, p])).values()
+      );
+
+      setProducts(uniqueProducts);
     } catch (err: any) {
       console.error('Error fetching products:', err);
       setError(err.message || 'Failed to load products');
@@ -115,7 +117,7 @@ export default function AdminProductsScreen() {
     product.brand.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderProductCard = ({ item }: { item: Product }) => (
+  const renderProductCard = ({ item }: { item: ProductSummary }) => (
     <TouchableOpacity
       onPress={() => handleProductPress(item.id)}
       activeOpacity={0.7}
@@ -157,14 +159,12 @@ export default function AdminProductsScreen() {
               )}
             </View>
 
-            {item.brand && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 4 }}>
-                <Ionicons name="bookmark-outline" size={12} color={theme.colors['text-muted']} />
-                <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>
-                  {item.brand}
-                </Text>
-              </View>
-            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 4 }}>
+              <Ionicons name="bookmark-outline" size={12} color={theme.colors['text-muted']} />
+              <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>
+                {item.brand}
+              </Text>
+            </View>
 
             {item.category_name && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 4 }}>
@@ -175,20 +175,20 @@ export default function AdminProductsScreen() {
               </View>
             )}
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons
-                name={item.is_active ? 'checkmark-circle' : 'close-circle'}
-                size={12}
-                color={item.is_active ? theme.colors.success : theme.colors.error}
-              />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: item.is_active ? theme.colors.success : theme.colors.error,
-                }}
-              >
-                {item.is_active ? 'Active' : 'Inactive'}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="pricetag-outline" size={12} color={theme.colors['text-muted']} />
+                <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>
+                  {item.lowest_price ? `$${item.lowest_price.toFixed(2)}` : 'No price'}
+                </Text>
+              </View>
+              
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="cube-outline" size={12} color={theme.colors['text-muted']} />
+                <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>
+                  {item.unit || 'N/A'}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -221,13 +221,42 @@ export default function AdminProductsScreen() {
           </View>
         </View>
 
-        {item.created_by_username && (
-          <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: theme.colors.border }}>
-            <Text style={{ fontSize: 11, color: theme.colors['text-muted'] }}>
-              Created by: {item.created_by_username}
+        {/* Status indicator */}
+        <View style={{ 
+          marginTop: 8, 
+          paddingTop: 8, 
+          borderTopWidth: 1, 
+          borderTopColor: theme.colors.border,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons
+              name={item.is_approved ? 'checkmark-circle' : 'time-outline'}
+              size={12}
+              color={item.is_approved ? theme.colors.success : theme.colors.warning}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                color: item.is_approved ? theme.colors.success : theme.colors.warning,
+              }}
+            >
+              {item.is_approved ? 'Approved' : 'Pending Approval'}
             </Text>
           </View>
-        )}
+          
+          {item.lowest_price && (
+            <Text style={{ 
+              fontSize: 11, 
+              color: theme.colors['text-muted'],
+              fontWeight: '500'
+            }}>
+              Lowest: ${item.lowest_price.toFixed(2)}
+            </Text>
+          )}
+        </View>
       </Card>
     </TouchableOpacity>
   );
@@ -257,7 +286,10 @@ export default function AdminProductsScreen() {
           No Products Found
         </Text>
         <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center' }}>
-          Create or import products to get started
+          {filters.showPending && filters.showApproved 
+            ? 'Create or import products to get started'
+            : 'Try adjusting your filters to see more products'
+          }
         </Text>
       </View>
     );

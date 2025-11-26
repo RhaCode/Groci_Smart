@@ -24,16 +24,16 @@ export interface Category {
   parent?: number;
   parent_name?: string;
   subcategories?: CategorySummary[];
-  is_approved: boolean;  // NEW
-  created_by?: number;  // NEW
-  created_by_username?: string;  // NEW
+  is_approved: boolean;  
+  created_by?: number;  
+  created_by_username?: string;  
   created_at: string;
 }
 
 export interface CategorySummary {
   id: number;
   name: string;
-  is_approved: boolean;  // NEW
+  is_approved: boolean;  
 }
 
 export interface Product {
@@ -47,9 +47,9 @@ export interface Product {
   barcode: string;
   description: string;
   is_active: boolean;
-  is_approved: boolean;  // NEW
-  created_by?: number;  // NEW
-  created_by_username?: string;  // NEW
+  is_approved: boolean;  
+  created_by?: number;  
+  created_by_username?: string;  
   current_prices: PriceHistory[];
   lowest_price: {
     price: number;
@@ -67,7 +67,7 @@ export interface ProductSummary {
   unit: string;
   category_name: string | null;
   lowest_price: number | null;
-  is_approved: boolean;  // NEW
+  is_approved: boolean;  
 }
 
 export interface PriceHistory {
@@ -79,10 +79,10 @@ export interface PriceHistory {
   price: string;
   date_recorded: string;
   is_active: boolean;
-  is_approved: boolean;  // NEW
+  is_approved: boolean;  
   source: string;
-  created_by?: number;  // NEW
-  created_by_username?: string;  // NEW
+  created_by?: number;  
+  created_by_username?: string;  
   created_at: string;
 }
 
@@ -147,7 +147,6 @@ export interface AddPriceData {
   source?: string;
 }
 
-// NEW: Pending approvals summary
 export interface PendingApprovalsCount {
   pending_stores: number;
   pending_categories: number;
@@ -156,7 +155,6 @@ export interface PendingApprovalsCount {
   total_pending: number;
 }
 
-// NEW: All pending items
 export interface AllPendingItems {
   stores: Store[];
   categories: Category[];
@@ -350,9 +348,9 @@ class ProductService {
   }
 
   // Get pending products (staff only)
-  async getPendingProducts(): Promise<Product[]> {
+  async getPendingProducts(): Promise<ProductSummary[]> {
     try {
-      const response = await api.get<Product[]>('/products/products/pending/');
+      const response = await api.get<ProductSummary[]>('/products/products/pending/');
       return response.data;
     } catch (error) {
       throw handleApiError(error);

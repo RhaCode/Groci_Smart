@@ -50,7 +50,7 @@ export default function ProfileLayout() {
         <>
           {/* Admin Dashboard */}
           <Stack.Screen
-            name="admin"
+            name="admin/index"
             options={{
               title: 'Admin Dashboard',
             }}
