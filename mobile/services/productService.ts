@@ -10,6 +10,9 @@ export interface Store {
   latitude?: number;
   longitude?: number;
   is_active: boolean;
+  is_approved: boolean; 
+  created_by?: number;  
+  created_by_username?: string;  
   created_at: string;
   updated_at: string;
 }
@@ -21,12 +24,16 @@ export interface Category {
   parent?: number;
   parent_name?: string;
   subcategories?: CategorySummary[];
+  is_approved: boolean;  // NEW
+  created_by?: number;  // NEW
+  created_by_username?: string;  // NEW
   created_at: string;
 }
 
 export interface CategorySummary {
   id: number;
   name: string;
+  is_approved: boolean;  // NEW
 }
 
 export interface Product {
@@ -40,6 +47,9 @@ export interface Product {
   barcode: string;
   description: string;
   is_active: boolean;
+  is_approved: boolean;  // NEW
+  created_by?: number;  // NEW
+  created_by_username?: string;  // NEW
   current_prices: PriceHistory[];
   lowest_price: {
     price: number;
@@ -57,6 +67,7 @@ export interface ProductSummary {
   unit: string;
   category_name: string | null;
   lowest_price: number | null;
+  is_approved: boolean;  // NEW
 }
 
 export interface PriceHistory {
@@ -68,7 +79,10 @@ export interface PriceHistory {
   price: string;
   date_recorded: string;
   is_active: boolean;
+  is_approved: boolean;  // NEW
   source: string;
+  created_by?: number;  // NEW
+  created_by_username?: string;  // NEW
   created_at: string;
 }
 
@@ -133,6 +147,23 @@ export interface AddPriceData {
   source?: string;
 }
 
+// NEW: Pending approvals summary
+export interface PendingApprovalsCount {
+  pending_stores: number;
+  pending_categories: number;
+  pending_products: number;
+  pending_prices: number;
+  total_pending: number;
+}
+
+// NEW: All pending items
+export interface AllPendingItems {
+  stores: Store[];
+  categories: Category[];
+  products: Product[];
+  prices: PriceHistory[];
+}
+
 class ProductService {
   // ===================== STORE ENDPOINTS =====================
 
@@ -140,6 +171,16 @@ class ProductService {
   async getStores(): Promise<Store[]> {
     try {
       const response = await api.get<Store[]>('/products/stores/');
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Get pending stores (staff only)
+  async getPendingStores(): Promise<Store[]> {
+    try {
+      const response = await api.get<Store[]>('/products/stores/pending/');
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -160,6 +201,26 @@ class ProductService {
   async createStore(data: StoreCreateData): Promise<Store> {
     try {
       const response = await api.post<Store>('/products/stores/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Approve store (staff only)
+  async approveStore(id: number): Promise<Store> {
+    try {
+      const response = await api.patch<Store>(`/products/stores/${id}/approve/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Reject store (staff only)
+  async rejectStore(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.patch(`/products/stores/${id}/reject/`);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -198,6 +259,16 @@ class ProductService {
     }
   }
 
+  // Get pending categories (staff only)
+  async getPendingCategories(): Promise<Category[]> {
+    try {
+      const response = await api.get<Category[]>('/products/categories/pending/');
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
   // Get category by ID
   async getCategoryById(id: number): Promise<Category> {
     try {
@@ -212,6 +283,26 @@ class ProductService {
   async createCategory(data: CategoryCreateData): Promise<Category> {
     try {
       const response = await api.post<Category>('/products/categories/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Approve category (staff only)
+  async approveCategory(id: number): Promise<Category> {
+    try {
+      const response = await api.patch<Category>(`/products/categories/${id}/approve/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Reject category (staff only)
+  async rejectCategory(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.patch(`/products/categories/${id}/reject/`);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -250,8 +341,18 @@ class ProductService {
       if (filters?.page) params.append('page', filters.page.toString());
       
       const response = await api.get<PaginatedResponse<ProductSummary>>(
-        `/products/?${params.toString()}`
+        `/products/products/?${params.toString()}`
       );
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Get pending products (staff only)
+  async getPendingProducts(): Promise<Product[]> {
+    try {
+      const response = await api.get<Product[]>('/products/products/pending/');
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -261,7 +362,7 @@ class ProductService {
   // Get product by ID
   async getProductById(id: number): Promise<Product> {
     try {
-      const response = await api.get<Product>(`/products/${id}/`);
+      const response = await api.get<Product>(`/products/products/${id}/`);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -271,7 +372,27 @@ class ProductService {
   // Create product
   async createProduct(data: ProductCreateData): Promise<Product> {
     try {
-      const response = await api.post<Product>('/products/create/', data);
+      const response = await api.post<Product>('/products/products/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Approve product (staff only)
+  async approveProduct(id: number): Promise<Product> {
+    try {
+      const response = await api.patch<Product>(`/products/products/${id}/approve/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Reject product (staff only)
+  async rejectProduct(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.patch(`/products/products/${id}/reject/`);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -281,7 +402,7 @@ class ProductService {
   // Update product
   async updateProduct(id: number, data: Partial<ProductCreateData>): Promise<Product> {
     try {
-      const response = await api.patch<Product>(`/products/${id}/update/`, data);
+      const response = await api.patch<Product>(`/products/products/${id}/update/`, data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -291,7 +412,7 @@ class ProductService {
   // Delete product
   async deleteProduct(id: number): Promise<{ message: string }> {
     try {
-      const response = await api.delete(`/products/${id}/delete/`);
+      const response = await api.delete(`/products/products/${id}/delete/`);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -301,7 +422,7 @@ class ProductService {
   // Search products
   async searchProducts(params: ProductSearchParams): Promise<ProductSummary[]> {
     try {
-      const response = await api.post<ProductSummary[]>('/products/search/', params);
+      const response = await api.post<ProductSummary[]>('/products/products/search/', params);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -315,8 +436,18 @@ class ProductService {
     try {
       const params = storeId ? `?store=${storeId}` : '';
       const response = await api.get<PriceHistory[]>(
-        `/products/${productId}/prices/${params}`
+        `/products/products/${productId}/prices/${params}`
       );
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Get pending prices (staff only)
+  async getPendingPrices(): Promise<PriceHistory[]> {
+    try {
+      const response = await api.get<PriceHistory[]>('/products/prices/pending/');
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -333,11 +464,51 @@ class ProductService {
     }
   }
 
+  // Approve price (staff only)
+  async approvePrice(id: number): Promise<PriceHistory> {
+    try {
+      const response = await api.patch<PriceHistory>(`/products/prices/${id}/approve/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Reject price (staff only)
+  async rejectPrice(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.patch(`/products/prices/${id}/reject/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Update price
+  async updatePrice(id: number, data: Partial<AddPriceData>): Promise<PriceHistory> {
+    try {
+      const response = await api.patch<PriceHistory>(`/products/prices/${id}/update/`, data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Delete price
+  async deletePrice(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete(`/products/prices/${id}/delete/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
   // Compare product prices across stores
   async compareProductPrices(productId: number): Promise<ProductPriceComparison> {
     try {
       const response = await api.get<ProductPriceComparison>(
-        `/products/${productId}/compare/`
+        `/products/products/${productId}/compare/`
       );
       return response.data;
     } catch (error) {
@@ -350,9 +521,31 @@ class ProductService {
     productIds: number[]
   ): Promise<{ results: ProductPriceComparison[] }> {
     try {
-      const response = await api.post('/products/compare-multiple/', {
+      const response = await api.post('/products/products/compare-multiple/', {
         product_ids: productIds,
       });
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // ===================== ADMIN DASHBOARD ENDPOINTS =====================
+
+  // Get pending approvals count (staff only)
+  async getPendingApprovalsCount(): Promise<PendingApprovalsCount> {
+    try {
+      const response = await api.get<PendingApprovalsCount>('/products/admin/pending-count/');
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Get all pending items (staff only)
+  async getAllPendingItems(): Promise<AllPendingItems> {
+    try {
+      const response = await api.get<AllPendingItems>('/products/admin/pending-items/');
       return response.data;
     } catch (error) {
       throw handleApiError(error);

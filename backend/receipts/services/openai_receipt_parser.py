@@ -23,7 +23,7 @@ class OpenAIReceiptParser:
             )
         
         self.client = OpenAI(api_key=self.api_key)
-        self.model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')  # Default to gpt-4o-mini for cost efficiency
+        self.model = os.getenv('OPENAI_MODEL', 'gpt-4.1-mini')
     
     def parse_receipt_text(self, text):
         """

@@ -10,6 +10,9 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  is_staff: boolean; 
+  is_superuser: boolean;
+  date_joined: string;
   profile: UserProfile;
 }
 
@@ -53,12 +56,34 @@ export interface ChangePasswordData {
   new_password2: string;
 }
 
+export interface CreateUserData {
+  username: string;
+  email: string;
+  password: string;
+  password2: string;
+  first_name?: string;
+  last_name?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}
+
+export interface UpdateUserData {
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}
+
 class AuthService {
+  // Current user cache
+  private currentUser: User | null = null;
+
   // Store token securely
   private async storeToken(token: string): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        // Fallback to localStorage for web
         localStorage.setItem('authToken', token);
       } else {
         await SecureStore.setItemAsync('authToken', token);
@@ -88,11 +113,57 @@ class AuthService {
     try {
       if (Platform.OS === 'web') {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
       } else {
         await SecureStore.deleteItemAsync('authToken');
+        await SecureStore.deleteItemAsync('currentUser');
       }
+      this.currentUser = null;
     } catch (error) {
       console.error('Error removing token:', error);
+    }
+  }
+
+  // Store user data locally
+  private async storeUser(user: User): Promise<void> {
+    try {
+      this.currentUser = user;
+      const userData = JSON.stringify(user);
+      
+      if (Platform.OS === 'web') {
+        localStorage.setItem('currentUser', userData);
+      } else {
+        await SecureStore.setItemAsync('currentUser', userData);
+      }
+    } catch (error) {
+      console.error('Error storing user data:', error);
+    }
+  }
+
+  // Get stored user data
+  async getStoredUser(): Promise<User | null> {
+    try {
+      if (this.currentUser) {
+        return this.currentUser;
+      }
+
+      let userData: string | null;
+      
+      if (Platform.OS === 'web') {
+        userData = localStorage.getItem('currentUser');
+      } else {
+        userData = await SecureStore.getItemAsync('currentUser');
+      }
+
+      if (userData) {
+        this.currentUser = JSON.parse(userData);
+        return this.currentUser;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+      return null;
     }
   }
 
@@ -102,14 +173,32 @@ class AuthService {
     return token !== null;
   }
 
+  // Check if current user is staff
+  async isStaff(): Promise<boolean> {
+    const user = await this.getStoredUser();
+    return user?.is_staff || false;
+  }
+
+  // Check if current user is superuser
+  async isSuperuser(): Promise<boolean> {
+    const user = await this.getStoredUser();
+    return user?.is_superuser || false;
+  }
+
+  // Get current user (from cache or storage)
+  async getCurrentUser(): Promise<User | null> {
+    return await this.getStoredUser();
+  }
+
   // Login
   async login(credentials: LoginCredentials): Promise<User> {
     try {
       const response = await api.post<AuthResponse>('/auth/login/', credentials);
       const { token, user } = response.data;
       
-      // Store token
+      // Store token and user
       await this.storeToken(token);
+      await this.storeUser(user);
       
       return user;
     } catch (error) {
@@ -123,8 +212,9 @@ class AuthService {
       const response = await api.post<AuthResponse>('/auth/register/', data);
       const { token, user } = response.data;
       
-      // Store token
+      // Store token and user
       await this.storeToken(token);
+      await this.storeUser(user);
       
       return user;
     } catch (error) {
@@ -139,15 +229,17 @@ class AuthService {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Always remove token locally
+      // Always remove token and user data locally
       await this.removeToken();
     }
   }
 
-  // Get current user profile
+  // Get current user profile (fresh from server)
   async getProfile(): Promise<User> {
     try {
       const response = await api.get<User>('/auth/profile/');
+      // Update stored user
+      await this.storeUser(response.data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -158,6 +250,8 @@ class AuthService {
   async updateProfile(data: Partial<User & UserProfile>): Promise<User> {
     try {
       const response = await api.put<User>('/auth/profile/update/', data);
+      // Update stored user
+      await this.storeUser(response.data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -216,6 +310,59 @@ class AuthService {
     } catch (error) {
       console.error('Error checking preferred store:', error);
       return false;
+    }
+  }
+
+  // ===================== USER MANAGEMENT (ADMIN ONLY) =====================
+
+  // Get all users
+  async getUsers(search?: string): Promise<User[]> {
+    try {
+      const params = search ? `?search=${encodeURIComponent(search)}` : '';
+      const response = await api.get<User[]>(`/auth/users/${params}`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Get user by ID
+  async getUserById(userId: number): Promise<User> {
+    try {
+      const response = await api.get<User>(`/auth/users/${userId}/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Create user (superuser only)
+  async createUser(data: CreateUserData): Promise<User> {
+    try {
+      const response = await api.post<User>('/auth/users/create/', data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Update user (superuser only)
+  async updateUser(userId: number, data: UpdateUserData): Promise<User> {
+    try {
+      const response = await api.patch<User>(`/auth/users/${userId}/update/`, data);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  }
+
+  // Delete user (superuser only)
+  async deleteUser(userId: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete(`/auth/users/${userId}/delete/`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
     }
   }
 }

@@ -9,16 +9,18 @@ from django.utils import timezone
 
 
 class StoreSerializer(serializers.ModelSerializer):
-    """Serializer for Store model"""
+    """Detailed store serializer"""
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = Store
         fields = [
             'id', 'name', 'location', 'address', 
-            'latitude', 'longitude', 'is_active',
+            'latitude', 'longitude', 'is_active', 'is_approved',
+            'created_by', 'created_by_username',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
 
 
 class StoreListSerializer(serializers.ModelSerializer):
@@ -26,21 +28,23 @@ class StoreListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Store
-        fields = ['id', 'name', 'location']
+        fields = ['id', 'name', 'location', 'is_approved']
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model"""
     subcategories = serializers.SerializerMethodField()
     parent_name = serializers.CharField(source='parent.name', read_only=True)
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = Category
         fields = [
             'id', 'name', 'description', 'parent', 
-            'parent_name', 'subcategories', 'created_at'
+            'parent_name', 'subcategories', 'is_approved',
+            'created_by', 'created_by_username', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_by', 'created_at']
     
     def get_subcategories(self, obj):
         """Get subcategories if they exist"""
@@ -54,22 +58,24 @@ class CategoryListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'is_approved']
 
 
 class PriceHistorySerializer(serializers.ModelSerializer):
     """Serializer for Price History"""
     store_name = serializers.CharField(source='store.name', read_only=True)
     store_location = serializers.CharField(source='store.location', read_only=True)
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = PriceHistory
         fields = [
             'id', 'product', 'store', 'store_name', 
             'store_location', 'price', 'date_recorded',
-            'is_active', 'source', 'created_at'
+            'is_active', 'is_approved', 'source', 
+            'created_by', 'created_by_username', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_by', 'created_at']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -77,24 +83,27 @@ class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     current_prices = serializers.SerializerMethodField()
     lowest_price = serializers.SerializerMethodField()
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'normalized_name', 'category',
             'category_name', 'brand', 'unit', 'barcode',
-            'description', 'is_active', 'current_prices',
-            'lowest_price', 'created_at', 'updated_at'
+            'description', 'is_active', 'is_approved',
+            'current_prices', 'lowest_price',
+            'created_by', 'created_by_username',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
     
     def get_current_prices(self, obj):
-        """Get current active prices for all stores"""
-        prices = obj.price_history.filter(is_active=True).select_related('store')
+        """Get current approved prices for all stores"""
+        prices = obj.price_history.filter(is_active=True, is_approved=True).select_related('store')
         return PriceHistorySerializer(prices, many=True).data
     
     def get_lowest_price(self, obj):
-        """Get the lowest current price"""
+        """Get the lowest current approved price"""
         lowest = obj.get_lowest_price()
         if lowest:
             return {
@@ -114,17 +123,17 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'brand', 'unit', 
-            'category_name', 'lowest_price'
+            'category_name', 'lowest_price', 'is_approved'
         ]
     
     def get_lowest_price(self, obj):
-        """Get the lowest current price"""
+        """Get the lowest current approved price"""
         lowest = obj.get_lowest_price()
         return float(lowest.price) if lowest else None
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating products"""
+    """Serializer for creating/updating products"""
     
     class Meta:
         model = Product
@@ -135,8 +144,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     
     def validate_barcode(self, value):
         """Ensure barcode is unique if provided"""
-        if value and Product.objects.filter(barcode=value).exists():
-            raise serializers.ValidationError("Product with this barcode already exists.")
+        if value:
+            existing = Product.objects.filter(barcode=value)
+            if self.instance:
+                existing = existing.exclude(id=self.instance.id)
+            if existing.exists():
+                raise serializers.ValidationError("Product with this barcode already exists.")
         return value
 
 
@@ -160,17 +173,15 @@ class AddPriceSerializer(serializers.ModelSerializer):
         fields = ['product', 'store', 'price', 'date_recorded', 'source']
     
     def validate(self, attrs):
-        """Validate product and store exist"""
-        if not Product.objects.filter(id=attrs['product'].id).exists():
-            raise serializers.ValidationError({"product": "Product does not exist."})
-        if not Store.objects.filter(id=attrs['store'].id).exists():
-            raise serializers.ValidationError({"store": "Store does not exist."})
+        """Validate product and store exist and are approved"""
+        product = attrs['product']
+        store = attrs['store']
+        
+        if not Product.objects.filter(id=product.id, is_approved=True).exists():
+            raise serializers.ValidationError({"product": "Product does not exist or is not approved."})
+        if not Store.objects.filter(id=store.id, is_approved=True).exists():
+            raise serializers.ValidationError({"store": "Store does not exist or is not approved."})
         return attrs
-    
-    def create(self, validated_data):
-        """Create price history and set as active"""
-        validated_data['is_active'] = True
-        return super().create(validated_data)
 
 
 class ProductSearchSerializer(serializers.Serializer):
@@ -178,4 +189,3 @@ class ProductSearchSerializer(serializers.Serializer):
     query = serializers.CharField(required=True, min_length=2)
     category = serializers.IntegerField(required=False)
     store = serializers.IntegerField(required=False)
-    

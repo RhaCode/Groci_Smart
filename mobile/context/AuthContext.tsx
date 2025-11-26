@@ -1,83 +1,79 @@
-// mobile/context/AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import authService, { User, LoginCredentials, RegisterData } from '../services/authService';
+// mobile/contexts/AuthContext.tsx
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import authService, { User } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  isStaff: boolean;
+  isSuperuser: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  error: string | null;
-  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Check authentication status on mount
+  // Initialize - check if user is already logged in
   useEffect(() => {
-    checkAuthStatus();
+    initializeAuth();
   }, []);
 
-  const checkAuthStatus = async () => {
+  const initializeAuth = async () => {
     try {
       const isAuth = await authService.isAuthenticated();
       if (isAuth) {
-        const userData = await authService.getProfile();
-        setUser(userData);
+        const storedUser = await authService.getStoredUser();
+        if (storedUser) {
+          setUser(storedUser);
+        } else {
+          // Fetch fresh user data if not stored
+          await refreshUser();
+        }
       }
-    } catch (err) {
-      console.error('Auth check failed:', err);
-      setUser(null);
+    } catch (error) {
+      console.error('Auth initialization error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (username: string, password: string) => {
     try {
-      setError(null);
-      setIsLoading(true);
-      const userData = await authService.login(credentials);
+      const userData = await authService.login({ username, password });
       setUser(userData);
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
-      throw err;
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      throw error;
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: any) => {
     try {
-      setError(null);
-      setIsLoading(true);
       const userData = await authService.register(data);
       setUser(userData);
-    } catch (err: any) {
-      setError(err.message || 'Registration failed');
-      throw err;
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
-      setIsLoading(true);
       await authService.logout();
       setUser(null);
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear user state even if API call fails
+      setUser(null);
     }
   };
 
@@ -85,38 +81,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userData = await authService.getProfile();
       setUser(userData);
-    } catch (err) {
-      console.error('Failed to refresh user:', err);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      throw error;
     }
   };
 
-  const clearError = () => {
-    setError(null);
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    isStaff: user?.is_staff || false,
+    isSuperuser: user?.is_superuser || false,
+    login,
+    register,
+    logout,
+    refreshUser,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-        refreshUser,
-        error,
-        clearError,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+// Custom hook to use the auth context
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+// Helper hook for permission checks
+export const usePermissions = () => {
+  const { isStaff, isSuperuser } = useAuth();
+
+  return {
+    canApprove: isStaff || isSuperuser,
+    canDelete: isStaff || isSuperuser,
+    canEditAll: isStaff || isSuperuser,
+    canViewPending: isStaff || isSuperuser,
+    canManageUsers: isSuperuser,
+    isStaff,
+    isSuperuser,
+  };
 };

@@ -10,8 +10,11 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from .serializers import (
     UserSerializer, 
+    UserCreateSerializer,
+    UserUpdateSerializer,
     UserRegistrationSerializer, 
     UserLoginSerializer,
     ChangePasswordSerializer,
@@ -22,6 +25,8 @@ from .serializers import (
 from .models import UserProfile, UserPreferredStore
 from products.models import Store
 
+
+# ===================== AUTHENTICATION VIEWS =====================
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -81,6 +86,8 @@ def logout_user(request):
         )
 
 
+# ===================== PROFILE MANAGEMENT VIEWS =====================
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def get_user_profile(request):
@@ -92,7 +99,7 @@ def get_user_profile(request):
 @api_view(['PUT', 'PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def update_user_profile(request):
-    """Update user profile"""
+    """Update current user profile"""
     user = request.user
     user_data = {}
     profile_data = {}
@@ -160,6 +167,8 @@ def change_password(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# ===================== PREFERRED STORES VIEWS =====================
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def get_preferred_stores(request):
@@ -225,3 +234,113 @@ def check_preferred_store(request, store_id):
         store_id=store_id
     ).exists()
     return Response({'is_preferred': is_preferred})
+
+
+# ===================== USER MANAGEMENT VIEWS (ADMIN ONLY) =====================
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def list_users(request):
+    """List all users (superuser only)"""
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Optional: Add search/filter functionality
+    search_query = request.query_params.get('search', '')
+    if search_query:
+        users = User.objects.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    else:
+        users = User.objects.all()
+    
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_user_detail(request, user_id):
+    """Get user details (superuser only)"""
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    user = get_object_or_404(User, id=user_id)
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def create_user(request):
+    """Create a new user (superuser only)"""
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = UserCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT', 'PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def update_user(request, user_id):
+    """Update a user (superuser only)"""
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    user = get_object_or_404(User, id=user_id)
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_200_OK
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def delete_user(request, user_id):
+    """Delete a user (superuser only)"""
+    if not request.user.is_superuser:
+        return Response(
+            {'error': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Prevent deleting the current user
+    if request.user.id == user_id:
+        return Response(
+            {'error': 'You cannot delete your own account.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user = get_object_or_404(User, id=user_id)
+    username = user.username
+    user.delete()
+    return Response(
+        {'message': f'User {username} deleted successfully'},
+        status=status.HTTP_200_OK
+    )

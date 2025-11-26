@@ -42,8 +42,83 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name', 
+            'is_staff', 'is_superuser',
+            'profile', 'date_joined'
+        ]
+        read_only_fields = ['id', 'date_joined']
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating users (admin only)"""
+    password = serializers.CharField(
+        write_only=True, 
+        required=True, 
+        validators=[validate_password]
+    )
+    password2 = serializers.CharField(write_only=True, required=True)
+    
+    class Meta:
+        model = User
+        fields = [
+            'username', 'email', 'password', 'password2',
+            'first_name', 'last_name', 'is_staff', 'is_superuser'
+        ]
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError(
+                {"password": "Password fields didn't match."}
+            )
+        
+        if User.objects.filter(username=attrs['username']).exists():
+            raise serializers.ValidationError(
+                {"username": "A user with this username already exists."}
+            )
+        
+        if User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError(
+                {"email": "A user with this email already exists."}
+            )
+        
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating users (admin only)"""
+    
+    class Meta:
+        model = User
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'is_staff', 'is_superuser'
+        ]
+
+    def validate(self, attrs):
+        # Check if username is being changed and if it's unique
+        if 'username' in attrs and self.instance:
+            if User.objects.filter(username=attrs['username']).exclude(id=self.instance.id).exists():
+                raise serializers.ValidationError(
+                    {"username": "A user with this username already exists."}
+                )
+        
+        # Check if email is being changed and if it's unique
+        if 'email' in attrs and self.instance:
+            if User.objects.filter(email=attrs['email']).exclude(id=self.instance.id).exists():
+                raise serializers.ValidationError(
+                    {"email": "A user with this email already exists."}
+                )
+        
+        return attrs
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -111,4 +186,3 @@ class AddPreferredStoreSerializer(serializers.Serializer):
         if not Store.objects.filter(id=value).exists():
             raise serializers.ValidationError("Store does not exist.")
         return value
-    

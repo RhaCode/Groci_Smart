@@ -140,7 +140,6 @@ class AzureOCRService:
                     return parsed_data
                 else:
                     print(f"OpenAI parsing failed: {parsed_data.get('error')}")
-                    # Fall through to manual parser
                     
             except ImportError:
                 print("OpenAI parser module not available, falling back to manual parser")
@@ -182,7 +181,7 @@ class AzureOCRService:
             extract_text: If True, extract text from image. If False, use already extracted text.
         """
         from receipts.models import ReceiptItem
-        # from products.models import Store, Product, Category, PriceHistory
+        from products.models import Store, Product, Category, PriceHistory
         
         receipt.status = 'processing'
         receipt.save()
@@ -232,26 +231,31 @@ class AzureOCRService:
                 receipt.save()
                 
                 # Step 4: Get or create store
-                # store = None
-                # if receipt.store_name:
-                #     store, created = Store.objects.get_or_create(
-                #         name=receipt.store_name,
-                #         defaults={'location': receipt.store_location or ''}
-                #     )
-                #     if created:
-                #         print(f"Created new store: {store.name}")
+                # Stores created from receipts need approval unless created by staff
+                store = None
+                if receipt.store_name:
+                    store = AzureOCRService._get_or_create_store(
+                        receipt.store_name,
+                        receipt.store_location or '',
+                        receipt.user
+                    )
+                    print(f"Store: {store.name} (approved: {store.is_approved})")
                 
                 # Step 5: Create receipt items and products
                 items_created = 0
                 if parsed_data.get('items'):
                     for item_data in parsed_data['items']:
                         # Try to find or create the product
-                        # product = AzureOCRService._get_or_create_product(item_data)
+                        # Products created from receipts need approval unless user is staff
+                        product = AzureOCRService._get_or_create_product(
+                            item_data,
+                            receipt.user
+                        )
                         
                         # Create receipt item
                         receipt_item = ReceiptItem.objects.create(
                             receipt=receipt,
-                            product=None,  # product,
+                            product=product,
                             product_name=item_data['name'],
                             normalized_name=item_data.get('normalized_name', item_data['name'].lower()),
                             quantity=item_data['quantity'],
@@ -261,17 +265,27 @@ class AzureOCRService:
                         items_created += 1
                         
                         # Step 6: Update price history if we have a store and product
-                        # if store and product:
-                        #     PriceHistory.objects.update_or_create(
-                        #         product=product,
-                        #         store=store,
-                        #         date_recorded=receipt.purchase_date or timezone.now().date(),
-                        #         defaults={
-                        #             'price': item_data['unit_price'],
-                        #             'source': 'receipt',
-                        #             'is_active': True
-                        #         }
-                        #     )
+                        # Prices created from receipts need approval unless user is staff
+                        if store and product:
+                            is_staff = receipt.user.is_staff if receipt.user else False
+                            
+                            price_history, created = PriceHistory.objects.update_or_create(
+                                product=product,
+                                store=store,
+                                date_recorded=receipt.purchase_date or timezone.now().date(),
+                                defaults={
+                                    'price': item_data['unit_price'],
+                                    'source': 'receipt',
+                                    'is_active': is_staff,  # Only active if created by staff
+                                    'is_approved': is_staff,  # Only approved if created by staff
+                                    'created_by': receipt.user
+                                }
+                            )
+                            
+                            if created:
+                                print(f"Created price: ${item_data['unit_price']} for {product.name} at {store.name} (approved: {price_history.is_approved})")
+                            else:
+                                print(f"Updated price: ${item_data['unit_price']} for {product.name} at {store.name}")
                 
                 print(f"Created {items_created} receipt items")
                 
@@ -285,54 +299,182 @@ class AzureOCRService:
             receipt.save()
             raise
     
-    # @staticmethod
-    # def _get_or_create_product(item_data):
-    #     """
-    #     Find existing product or create new one from receipt item data
-    #     
-    #     Args:
-    #         item_data: Dict with product information from parsed receipt
-    #         
-    #     Returns:
-    #         Product instance
-    #     """
-    #     from products.models import Product, Category
-    #     
-    #     normalized_name = item_data.get('normalized_name', item_data['name'].lower())
-    #     brand = item_data.get('brand', '')
-    #     
-    #     # Try to find existing product by normalized name and brand
-    #     query = Product.objects.filter(normalized_name=normalized_name)
-    #     if brand:
-    #         query = query.filter(brand__iexact=brand)
-    #     
-    #     existing_product = query.first()
-    #     
-    #     if existing_product:
-    #         print(f"Found existing product: {existing_product.name}")
-    #         return existing_product
-    #     
-    #     # Try to find/create category
-    #     category = None
-    #     category_name = item_data.get('category', '')
-    #     if category_name:
-    #         category, created = Category.objects.get_or_create(
-    #             name=category_name,
-    #             defaults={'description': f'Auto-created from receipt parsing'}
-    #         )
-    #         if created:
-    #             print(f"Created new category: {category.name}")
-    #     
-    #     # Create new product
-    #     product = Product.objects.create(
-    #         name=item_data['name'],
-    #         normalized_name=normalized_name,
-    #         brand=brand,
-    #         unit=item_data.get('unit', ''),
-    #         category=category,
-    #         description='Auto-created from receipt',
-    #         is_active=True
-    #     )
-    #     
-    #     print(f"Created new product: {product.name}")
-    #     return product
+    @staticmethod
+    def _get_or_create_store(store_name, store_location, user):
+        """
+        Find existing approved store or create new one pending approval
+        
+        Args:
+            store_name: Store name from receipt
+            store_location: Store location from receipt
+            user: User who uploaded the receipt
+            
+        Returns:
+            Store instance
+        """
+        from products.models import Store
+        
+        # Try to find existing approved store by name
+        existing_store = Store.objects.filter(
+            name__iexact=store_name,
+            is_approved=True
+        ).first()
+        
+        if existing_store:
+            print(f"Found existing approved store: {existing_store.name}")
+            return existing_store
+        
+        # Check if user already created this store (pending approval)
+        user_pending_store = Store.objects.filter(
+            name__iexact=store_name,
+            created_by=user,
+            is_approved=False
+        ).first()
+        
+        if user_pending_store:
+            print(f"Found user's pending store: {user_pending_store.name}")
+            return user_pending_store
+        
+        # Create new store - auto-approved if user is staff
+        is_staff = user.is_staff if user else False
+        
+        store = Store.objects.create(
+            name=store_name,
+            location=store_location,
+            created_by=user,
+            is_approved=is_staff,
+            is_active=True
+        )
+        
+        if is_staff:
+            print(f"Created new auto-approved store: {store.name}")
+        else:
+            print(f"Created new store pending approval: {store.name}")
+        
+        return store
+    
+    @staticmethod
+    def _get_or_create_product(item_data, user):
+        """
+        Find existing approved product or create new one pending approval
+        
+        Args:
+            item_data: Dict with product information from parsed receipt
+            user: User who uploaded the receipt
+            
+        Returns:
+            Product instance
+        """
+        from products.models import Product, Category
+        
+        normalized_name = item_data.get('normalized_name', item_data['name'].lower())
+        brand = item_data.get('brand', '')
+        
+        # Try to find existing approved product by normalized name and brand
+        query = Product.objects.filter(
+            normalized_name=normalized_name,
+            is_approved=True
+        )
+        if brand:
+            query = query.filter(brand__iexact=brand)
+        
+        existing_product = query.first()
+        
+        if existing_product:
+            print(f"Found existing approved product: {existing_product.name}")
+            return existing_product
+        
+        # Check if user already created this product (pending approval)
+        user_query = Product.objects.filter(
+            normalized_name=normalized_name,
+            created_by=user,
+            is_approved=False
+        )
+        if brand:
+            user_query = user_query.filter(brand__iexact=brand)
+        
+        user_pending_product = user_query.first()
+        
+        if user_pending_product:
+            print(f"Found user's pending product: {user_pending_product.name}")
+            return user_pending_product
+        
+        # Try to find/create category
+        category = None
+        category_name = item_data.get('category', '')
+        if category_name:
+            category = AzureOCRService._get_or_create_category(category_name, user)
+        
+        # Create new product - auto-approved if user is staff
+        is_staff = user.is_staff if user else False
+        
+        product = Product.objects.create(
+            name=item_data['name'],
+            normalized_name=normalized_name,
+            brand=brand,
+            unit=item_data.get('unit', ''),
+            category=category,
+            description='Auto-created from receipt',
+            is_active=True,
+            is_approved=is_staff,
+            created_by=user
+        )
+        
+        if is_staff:
+            print(f"Created new auto-approved product: {product.name}")
+        else:
+            print(f"Created new product pending approval: {product.name}")
+        
+        return product
+    
+    @staticmethod
+    def _get_or_create_category(category_name, user):
+        """
+        Find existing approved category or create new one pending approval
+        
+        Args:
+            category_name: Category name from parsed receipt
+            user: User who uploaded the receipt
+            
+        Returns:
+            Category instance or None
+        """
+        from products.models import Category
+        
+        # Try to find existing approved category
+        existing_category = Category.objects.filter(
+            name__iexact=category_name,
+            is_approved=True
+        ).first()
+        
+        if existing_category:
+            print(f"Found existing approved category: {existing_category.name}")
+            return existing_category
+        
+        # Check if user already created this category (pending approval)
+        user_pending_category = Category.objects.filter(
+            name__iexact=category_name,
+            created_by=user,
+            is_approved=False
+        ).first()
+        
+        if user_pending_category:
+            print(f"Found user's pending category: {user_pending_category.name}")
+            return user_pending_category
+        
+        # Create new category - auto-approved if user is staff
+        is_staff = user.is_staff if user else False
+        
+        category = Category.objects.create(
+            name=category_name,
+            description='Auto-created from receipt parsing',
+            is_approved=is_staff,
+            created_by=user
+        )
+        
+        if is_staff:
+            print(f"Created new auto-approved category: {category.name}")
+        else:
+            print(f"Created new category pending approval: {category.name}")
+        
+        return category

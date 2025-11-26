@@ -10,12 +10,12 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 export default function LoginScreen() {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
@@ -39,16 +39,41 @@ export default function LoginScreen() {
     if (!validateForm()) return;
 
     try {
-      clearError();
-      await login({ username: username.trim(), password });
-      // Navigation handled by root layout based on auth state
+      await login(username.trim(), password);
+      // Navigation is handled by the root layout based on auth state
     } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Invalid credentials');
+      // Handle different types of errors from the auth service
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (err.response?.data) {
+        // API error with response data
+        const errorData = err.response.data;
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.non_field_errors) {
+          errorMessage = errorData.non_field_errors[0];
+        } else if (errorData.username) {
+          errorMessage = errorData.username[0];
+        } else if (errorData.password) {
+          errorMessage = errorData.password[0];
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      Alert.alert('Login Failed', errorMessage);
     }
   };
 
   const navigateToRegister = () => {
     router.push('/(auth)/register');
+  };
+
+  const navigateToForgotPassword = () => {
+    // You can implement forgot password navigation here
+    Alert.alert('Forgot Password', 'Please contact support to reset your password.');
   };
 
   return (
@@ -82,12 +107,15 @@ export default function LoginScreen() {
               value={username}
               onChangeText={(text) => {
                 setUsername(text);
-                setErrors((prev) => ({ ...prev, username: undefined }));
+                if (errors.username) {
+                  setErrors((prev) => ({ ...prev, username: undefined }));
+                }
               }}
               error={errors.username}
               icon="person-outline"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isLoading}
             />
 
             <Input
@@ -96,15 +124,22 @@ export default function LoginScreen() {
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
-                setErrors((prev) => ({ ...prev, password: undefined }));
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
               }}
               error={errors.password}
               icon="lock-closed-outline"
               secureTextEntry
+              editable={!isLoading}
             />
 
             {/* Forgot Password Link */}
-            <TouchableOpacity className="self-end mb-6">
+            <TouchableOpacity 
+              className="self-end mb-6"
+              onPress={navigateToForgotPassword}
+              disabled={isLoading}
+            >
               <Text className="text-primary font-medium">
                 Forgot Password?
               </Text>
@@ -115,6 +150,7 @@ export default function LoginScreen() {
               title="Sign In"
               onPress={handleLogin}
               loading={isLoading}
+              disabled={isLoading}
               fullWidth
               size="lg"
               variant="primary"
@@ -124,17 +160,13 @@ export default function LoginScreen() {
           {/* Register Link */}
           <View className="flex-row justify-center items-center">
             <Text className="text-text-secondary">Don't have an account? </Text>
-            <TouchableOpacity onPress={navigateToRegister}>
+            <TouchableOpacity 
+              onPress={navigateToRegister}
+              disabled={isLoading}
+            >
               <Text className="text-primary font-semibold">Sign Up</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Error Message */}
-          {error && (
-            <View className="mt-4 bg-error/10 border border-error/30 rounded-lg p-3">
-              <Text className="text-error text-center">{error}</Text>
-            </View>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
