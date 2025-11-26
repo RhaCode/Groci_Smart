@@ -64,13 +64,14 @@ class CategoryListSerializer(serializers.ModelSerializer):
 class PriceHistorySerializer(serializers.ModelSerializer):
     """Serializer for Price History"""
     store_name = serializers.CharField(source='store.name', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
     store_location = serializers.CharField(source='store.location', read_only=True)
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     
     class Meta:
         model = PriceHistory
         fields = [
-            'id', 'product', 'store', 'store_name', 
+            'id', 'product', 'store', 'store_name', 'product_name',
             'store_location', 'price', 'date_recorded',
             'is_active', 'is_approved', 'source', 
             'created_by', 'created_by_username', 'created_at'

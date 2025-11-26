@@ -605,7 +605,7 @@ def add_price(request):
 @api_view(['PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def approve_price(request, price_id):
-    """Approve a pending price - staff only"""
+    """Approve a pending price - staff only. Auto-approves store and product if needed."""
     if not request.user.is_staff:
         return Response(
             {'error': 'Only staff can approve prices'}, 
@@ -614,25 +614,21 @@ def approve_price(request, price_id):
     
     price = get_object_or_404(PriceHistory, id=price_id)
     
-    # Check if product and store are approved
+    # Auto-approve the product if it's not approved
     if not price.product.is_approved:
-        return Response(
-            {'error': 'Cannot approve price for unapproved product'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        price.product.is_approved = True
+        price.product.save()
     
+    # Auto-approve the store if it's not approved
     if not price.store.is_approved:
-        return Response(
-            {'error': 'Cannot approve price for unapproved store'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        price.store.is_approved = True
+        price.store.save()
     
     price.is_approved = True
     price.is_active = True
     price.save()  # This will trigger the save method to deactivate old prices
     
     return Response(PriceHistorySerializer(price).data)
-
 
 @api_view(['PATCH'])
 @permission_classes([permissions.IsAuthenticated])

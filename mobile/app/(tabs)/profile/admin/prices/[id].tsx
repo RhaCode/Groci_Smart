@@ -258,7 +258,7 @@ export default function AdminPriceDetailScreen() {
           <View style={{ gap: 12 }}>
             <DetailRow label="Store" value={price.store_name} />
             <DetailRow label="Location" value={price.store_location} />
-            <DetailRow label="Product ID" value={`#${price.product}`} />
+            <DetailRow label="Product" value={price.product_name} />
             <DetailRow 
               label="Date Recorded" 
               value={new Date(price.date_recorded).toLocaleDateString()} 

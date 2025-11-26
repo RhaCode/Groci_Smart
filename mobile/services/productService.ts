@@ -75,6 +75,7 @@ export interface PriceHistory {
   product: number;
   store: number;
   store_name: string;
+  product_name: string;
   store_location: string;
   price: string;
   date_recorded: string;
