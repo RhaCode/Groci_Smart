@@ -10,12 +10,12 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 export default function RegisterScreen() {
-  const { register, isLoading, error, clearError } = useAuth();
+  const { register, isLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     username: '',
@@ -30,7 +30,10 @@ export default function RegisterScreen() {
 
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
+    // Clear field-specific error when user types
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
   };
 
   const validateForm = () => {
@@ -69,7 +72,6 @@ export default function RegisterScreen() {
     if (!validateForm()) return;
 
     try {
-      clearError();
       await register({
         username: formData.username.trim(),
         email: formData.email.trim().toLowerCase(),
@@ -79,8 +81,41 @@ export default function RegisterScreen() {
         last_name: formData.last_name.trim(),
       });
       // Navigation handled by root layout based on auth state
+      // The user will be automatically redirected after successful registration
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Unable to create account');
+      // Handle different types of errors from the auth service
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (err.response?.data) {
+        // API error with response data
+        const errorData = err.response.data;
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.non_field_errors) {
+          errorMessage = errorData.non_field_errors[0];
+        } else if (errorData.username) {
+          errorMessage = `Username: ${errorData.username[0]}`;
+        } else if (errorData.email) {
+          errorMessage = `Email: ${errorData.email[0]}`;
+        } else if (errorData.password) {
+          errorMessage = `Password: ${errorData.password[0]}`;
+        } else {
+          // Handle other field errors
+          const firstErrorKey = Object.keys(errorData)[0];
+          const firstError = errorData[firstErrorKey];
+          if (Array.isArray(firstError)) {
+            errorMessage = `${firstErrorKey}: ${firstError[0]}`;
+          } else {
+            errorMessage = firstError;
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      Alert.alert('Registration Failed', errorMessage);
     }
   };
 
@@ -122,6 +157,7 @@ export default function RegisterScreen() {
               icon="person-outline"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isLoading}
             />
 
             <Input
@@ -134,6 +170,7 @@ export default function RegisterScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isLoading}
             />
 
             <View className="flex-row gap-2">
@@ -144,6 +181,7 @@ export default function RegisterScreen() {
                   value={formData.first_name}
                   onChangeText={(text) => updateField('first_name', text)}
                   autoCapitalize="words"
+                  editable={!isLoading}
                 />
               </View>
               <View className="flex-1">
@@ -153,6 +191,7 @@ export default function RegisterScreen() {
                   value={formData.last_name}
                   onChangeText={(text) => updateField('last_name', text)}
                   autoCapitalize="words"
+                  editable={!isLoading}
                 />
               </View>
             </View>
@@ -165,6 +204,7 @@ export default function RegisterScreen() {
               error={errors.password}
               icon="lock-closed-outline"
               secureTextEntry
+              editable={!isLoading}
             />
 
             <Input
@@ -175,6 +215,7 @@ export default function RegisterScreen() {
               error={errors.password2}
               icon="lock-closed-outline"
               secureTextEntry
+              editable={!isLoading}
             />
 
             {/* Register Button */}
@@ -182,6 +223,7 @@ export default function RegisterScreen() {
               title="Create Account"
               onPress={handleRegister}
               loading={isLoading}
+              disabled={isLoading}
               fullWidth
               size="lg"
               variant="primary"
@@ -191,17 +233,10 @@ export default function RegisterScreen() {
           {/* Login Link */}
           <View className="flex-row justify-center items-center mb-4">
             <Text className="text-text-secondary">Already have an account? </Text>
-            <TouchableOpacity onPress={navigateToLogin}>
+            <TouchableOpacity onPress={navigateToLogin} disabled={isLoading}>
               <Text className="text-primary font-semibold">Sign In</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Error Message */}
-          {error && (
-            <View className="mt-4 bg-error/10 border border-error/30 rounded-lg p-3">
-              <Text className="text-error text-center">{error}</Text>
-            </View>
-          )}
 
           {/* Terms Text */}
           <Text className="text-text-muted text-xs text-center mt-4">
