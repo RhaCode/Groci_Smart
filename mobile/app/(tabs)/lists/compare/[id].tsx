@@ -146,7 +146,7 @@ export default function PriceComparisonScreen() {
         <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
           <View style={{ alignItems: 'center', marginBottom: 16 }}>
             <Text style={{ color: theme.colors['text-secondary'], marginBottom: 8 }}>Shopping at</Text>
-            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ 
                 backgroundColor: `${theme.colors.success}20`, 
                 borderRadius: 9999, 
@@ -173,7 +173,7 @@ export default function PriceComparisonScreen() {
             </View>
           </View>
 
-          {comparison.potential_savings && parseFloat(comparison.potential_savings) > 0 && (
+          {comparison.potential_savings && parseFloat(comparison.potential_savings as any) > 0 && (
             <View style={{ 
               backgroundColor: `${theme.colors.success}10`, 
               borderWidth: 1, 
