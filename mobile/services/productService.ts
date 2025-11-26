@@ -442,6 +442,47 @@ class ProductService {
     }
   }
 
+  // Get all prices with optional filtering
+async getAllPrices(filters?: {
+  is_approved?: boolean;
+  is_active?: boolean;
+  product?: number;
+  store?: number;
+  page?: number;
+}): Promise<PaginatedResponse<PriceHistory>> {
+  try {
+    const params = new URLSearchParams();
+    
+    if (filters?.is_approved !== undefined) 
+      params.append('is_approved', filters.is_approved.toString());
+    if (filters?.is_active !== undefined) 
+      params.append('is_active', filters.is_active.toString());
+    if (filters?.product) 
+      params.append('product', filters.product.toString());
+    if (filters?.store) 
+      params.append('store', filters.store.toString());
+    if (filters?.page) 
+      params.append('page', filters.page.toString());
+    
+    const response = await api.get<PaginatedResponse<PriceHistory>>(
+      `/products/prices/?${params.toString()}`
+    );
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+// Get price by ID
+async getPriceById(id: number): Promise<PriceHistory> {
+  try {
+    const response = await api.get<PriceHistory>(`/products/prices/${id}/`);
+    return response.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
   // Get pending prices (staff only)
   async getPendingPrices(): Promise<PriceHistory[]> {
     try {

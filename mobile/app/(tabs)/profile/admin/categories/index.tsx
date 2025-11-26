@@ -37,37 +37,42 @@ export default function AdminCategoriesScreen() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchCategories = async (refresh: boolean = false) => {
-    try {
-      if (refresh) {
-        setIsRefreshing(true);
-        setError(null);
-      } else {
-        setIsLoading(true);
-        setError(null);
-      }
-
-      let allCategories: Category[] = [];
-
-      if (filters.showPending) {
-        const pending = await productService.getPendingCategories();
-        allCategories = [...allCategories, ...pending];
-      }
-
-      if (filters.showApproved) {
-        const approved = await productService.getCategories();
-        allCategories = [...allCategories, ...approved];
-      }
-
-      setCategories(allCategories);
-    } catch (err: any) {
-      console.error('Error fetching categories:', err);
-      setError(err.message || 'Failed to load categories');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+const fetchCategories = async (refresh: boolean = false) => {
+  try {
+    if (refresh) {
+      setIsRefreshing(true);
+      setError(null);
+    } else {
+      setIsLoading(true);
+      setError(null);
     }
-  };
+
+    let allCategories: Category[] = [];
+
+    if (filters.showPending) {
+      const pending = await productService.getPendingCategories();
+      allCategories = [...allCategories, ...pending];
+    }
+
+    if (filters.showApproved) {
+      const approved = await productService.getCategories();
+      allCategories = [...allCategories, ...approved];
+    }
+
+    // Remove duplicates by ID
+    const uniqueCategories = Array.from(
+      new Map(allCategories.map(c => [c.id, c])).values()
+    );
+
+    setCategories(uniqueCategories);
+  } catch (err: any) {
+    console.error('Error fetching categories:', err);
+    setError(err.message || 'Failed to load categories');
+  } finally {
+    setIsLoading(false);
+    setIsRefreshing(false);
+  }
+};
 
   useFocusEffect(
     useCallback(() => {

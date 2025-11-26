@@ -41,13 +41,15 @@ urlpatterns = [
     path('products/search/', views.search_products, name='search_products'),
     
     # ============= PRICE ENDPOINTS =============
-    path('products/<int:product_id>/prices/', views.get_product_prices, name='get_product_prices'),
+    path('prices/', views.get_all_prices, name='get_all_prices'), 
     path('prices/pending/', views.get_pending_prices, name='get_pending_prices'),
+    path('prices/<int:price_id>/', views.get_price_detail, name='get_price_detail'),  
     path('prices/add/', views.add_price, name='add_price'),
     path('prices/<int:price_id>/approve/', views.approve_price, name='approve_price'),
     path('prices/<int:price_id>/reject/', views.reject_price, name='reject_price'),
     path('prices/<int:price_id>/update/', views.update_price, name='update_price'),
     path('prices/<int:price_id>/delete/', views.delete_price, name='delete_price'),
+    path('products/<int:product_id>/prices/', views.get_product_prices, name='get_product_prices'),
     
     # ============= PRICE COMPARISON ENDPOINTS =============
     path('products/<int:product_id>/compare/', views.compare_product_prices, name='compare_product_prices'),

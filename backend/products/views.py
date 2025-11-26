@@ -524,6 +524,65 @@ def get_pending_prices(request):
     serializer = PriceHistorySerializer(prices, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_all_prices(request):
+    """
+    Get all price history - staff sees all, regular users see approved only
+    Supports filtering by is_approved query parameter
+    """
+    if request.user.is_staff:
+        prices = PriceHistory.objects.all()
+    else:
+        prices = PriceHistory.objects.filter(is_approved=True)
+    
+    # Filter by approval status if specified
+    is_approved = request.query_params.get('is_approved')
+    if is_approved is not None:
+        is_approved_bool = is_approved.lower() == 'true'
+        prices = prices.filter(is_approved=is_approved_bool)
+    
+    # Filter by active status if specified
+    is_active = request.query_params.get('is_active')
+    if is_active is not None:
+        is_active_bool = is_active.lower() == 'true'
+        prices = prices.filter(is_active=is_active_bool)
+    
+    # Filter by product if specified
+    product_id = request.query_params.get('product')
+    if product_id:
+        prices = prices.filter(product_id=product_id)
+    
+    # Filter by store if specified
+    store_id = request.query_params.get('store')
+    if store_id:
+        prices = prices.filter(store_id=store_id)
+    
+    prices = prices.select_related('product', 'store').order_by('-date_recorded')
+    
+    # Pagination
+    paginator = PageNumberPagination()
+    paginator.page_size = 50
+    result_page = paginator.paginate_queryset(prices, request)
+    serializer = PriceHistorySerializer(result_page, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_price_detail(request, price_id):
+    """Get detailed information about a specific price"""
+    price = get_object_or_404(PriceHistory, id=price_id)
+    
+    # Regular users can only view approved prices
+    if not request.user.is_staff and not price.is_approved:
+        return Response(
+            {'error': 'Price not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    serializer = PriceHistorySerializer(price)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -554,9 +613,24 @@ def approve_price(request, price_id):
         )
     
     price = get_object_or_404(PriceHistory, id=price_id)
+    
+    # Check if product and store are approved
+    if not price.product.is_approved:
+        return Response(
+            {'error': 'Cannot approve price for unapproved product'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not price.store.is_approved:
+        return Response(
+            {'error': 'Cannot approve price for unapproved store'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
     price.is_approved = True
     price.is_active = True
     price.save()  # This will trigger the save method to deactivate old prices
+    
     return Response(PriceHistorySerializer(price).data)
 
 

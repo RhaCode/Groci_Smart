@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   TextInput,
   Alert,
 } from 'react-native';
@@ -14,7 +13,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import productService, { Store } from '../../../../../services/productService';
 import { Card } from '../../../../../components/ui/Card';
-import { Button } from '../../../../../components/ui/Button';
 import { LoadingSpinner } from '../../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../../components/ui/ErrorMessage';
 import { useTheme } from '../../../../../context/ThemeContext';
@@ -37,37 +35,42 @@ export default function AdminStoresScreen() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchStores = async (refresh: boolean = false) => {
-    try {
-      if (refresh) {
-        setIsRefreshing(true);
-        setError(null);
-      } else {
-        setIsLoading(true);
-        setError(null);
-      }
-
-      let allStores: Store[] = [];
-
-      if (filters.showPending) {
-        const pending = await productService.getPendingStores();
-        allStores = [...allStores, ...pending];
-      }
-
-      if (filters.showApproved) {
-        const approved = await productService.getStores();
-        allStores = [...allStores, ...approved];
-      }
-
-      setStores(allStores);
-    } catch (err: any) {
-      console.error('Error fetching stores:', err);
-      setError(err.message || 'Failed to load stores');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+const fetchStores = async (refresh: boolean = false) => {
+  try {
+    if (refresh) {
+      setIsRefreshing(true);
+      setError(null);
+    } else {
+      setIsLoading(true);
+      setError(null);
     }
-  };
+
+    let allStores: Store[] = [];
+
+    if (filters.showPending) {
+      const pending = await productService.getPendingStores();
+      allStores = [...allStores, ...pending];
+    }
+
+    if (filters.showApproved) {
+      const approved = await productService.getStores();
+      allStores = [...allStores, ...approved];
+    }
+
+    // Remove duplicates by ID
+    const uniqueStores = Array.from(
+      new Map(allStores.map(s => [s.id, s])).values()
+    );
+
+    setStores(uniqueStores);
+  } catch (err: any) {
+    console.error('Error fetching stores:', err);
+    setError(err.message || 'Failed to load stores');
+  } finally {
+    setIsLoading(false);
+    setIsRefreshing(false);
+  }
+};
 
   useFocusEffect(
     useCallback(() => {

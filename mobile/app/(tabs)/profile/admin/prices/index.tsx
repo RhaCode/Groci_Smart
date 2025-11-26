@@ -1,12 +1,11 @@
 // mobile/app/(tabs)/profile/admin/prices/index.tsx
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   TextInput,
   Alert,
 } from 'react-native';
@@ -14,7 +13,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import productService, { PriceHistory } from '../../../../../services/productService';
 import { Card } from '../../../../../components/ui/Card';
-import { Button } from '../../../../../components/ui/Button';
 import { LoadingSpinner } from '../../../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../../../components/ui/ErrorMessage';
 import { useTheme } from '../../../../../context/ThemeContext';
@@ -49,30 +47,19 @@ export default function AdminPricesScreen() {
 
       let allPrices: PriceHistory[] = [];
 
-      if (filters.showPending) {
-        const pending = await productService.getPendingPrices();
-        allPrices = [...allPrices, ...pending];
-      }
-
-      // For approved prices, we need to get them from products since there's no direct endpoint
-      if (filters.showApproved) {
-        // We'll simulate getting approved prices by getting products and extracting their current prices
-        // In a real app, you'd have a dedicated endpoint for approved prices
-        const products = await productService.getProducts();
-        const approvedPrices: PriceHistory[] = [];
-        
-        // This is a simplified approach - in reality you'd want a proper endpoint
-        products.results.forEach(product => {
-          if (product.current_prices) {
-            product.current_prices.forEach(price => {
-              if (price.is_approved) {
-                approvedPrices.push(price);
-              }
-            });
-          }
-        });
-        
-        allPrices = [...allPrices, ...approvedPrices];
+      // Fetch based on filter settings
+      if (filters.showPending && filters.showApproved) {
+        // Get all prices
+        const response = await productService.getAllPrices();
+        allPrices = response.results;
+      } else if (filters.showPending) {
+        // Get only pending prices
+        const response = await productService.getAllPrices({ is_approved: false });
+        allPrices = response.results;
+      } else if (filters.showApproved) {
+        // Get only approved prices
+        const response = await productService.getAllPrices({ is_approved: true });
+        allPrices = response.results;
       }
 
       setPrices(allPrices);
@@ -102,10 +89,10 @@ export default function AdminPricesScreen() {
     });
   };
 
-  const handleDeletePrice = (priceId: number, productName: string, storeName: string) => {
+  const handleDeletePrice = (priceId: number, storeName: string) => {
     Alert.alert(
       'Delete Price',
-      `Are you sure you want to delete the price for "${productName}" at ${storeName}?`,
+      `Are you sure you want to delete the price at ${storeName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -220,7 +207,7 @@ export default function AdminPricesScreen() {
               <Ionicons name="pencil" size={16} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => handleDeletePrice(item.id, `Product #${item.product}`, item.store_name)}
+              onPress={() => handleDeletePrice(item.id, item.store_name)}
               style={{
                 backgroundColor: '#EF4444',
                 padding: 8,
@@ -245,6 +232,13 @@ export default function AdminPricesScreen() {
 
   const renderEmptyState = () => {
     if (isLoading) return null;
+    
+    const message = !filters.showPending && !filters.showApproved
+      ? 'Please select at least one filter option'
+      : filters.showPending && !filters.showApproved
+      ? 'No pending price approvals at the moment'
+      : 'No prices found';
+
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
         <View
@@ -267,8 +261,8 @@ export default function AdminPricesScreen() {
         >
           No Prices Found
         </Text>
-        <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center' }}>
-          Add price entries for products across different stores
+        <Text style={{ color: theme.colors['text-secondary'], textAlign: 'center', paddingHorizontal: 32 }}>
+          {message}
         </Text>
       </View>
     );

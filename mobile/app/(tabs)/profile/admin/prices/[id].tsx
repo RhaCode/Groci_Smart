@@ -26,8 +26,6 @@ export default function AdminPriceDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isActioning, setIsActioning] = useState(false);
 
-  // Since we don't have a direct endpoint to get price by ID, we'll simulate it
-  // In a real app, you'd have a proper endpoint for this
   const fetchPrice = async (refresh: boolean = false) => {
     try {
       if (refresh) {
@@ -37,34 +35,9 @@ export default function AdminPriceDetailScreen() {
       }
       setError(null);
 
-      // Get all pending prices and find the one we want
-      const pendingPrices = await productService.getPendingPrices();
-      const foundPrice = pendingPrices.find(p => p.id === parseInt(id));
-
-      if (!foundPrice) {
-        // If not found in pending, try to find in approved prices
-        // This is a simplified approach - in reality you'd have a proper endpoint
-        const products = await productService.getProducts();
-        let approvedPrice: PriceHistory | null = null;
-        
-        for (const product of products.results) {
-          if (product.current_prices) {
-            const priceMatch = product.current_prices.find(p => p.id === parseInt(id));
-            if (priceMatch) {
-              approvedPrice = priceMatch;
-              break;
-            }
-          }
-        }
-
-        if (approvedPrice) {
-          setPrice(approvedPrice);
-        } else {
-          throw new Error('Price not found');
-        }
-      } else {
-        setPrice(foundPrice);
-      }
+      // Use the new getPriceById endpoint
+      const priceData = await productService.getPriceById(parseInt(id));
+      setPrice(priceData);
     } catch (err: any) {
       console.error('Error fetching price:', err);
       setError(err.message || 'Failed to load price');

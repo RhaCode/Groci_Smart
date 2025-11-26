@@ -248,7 +248,6 @@ export default function AdminStoreDetailScreen() {
             <DetailRow label="Location" value={store.location} />
             {store.address && <DetailRow label="Address" value={store.address} />}
             
-            {(store.latitude && store.longitude) && (
               <TouchableOpacity
                 onPress={handleOpenMaps}
                 style={{
@@ -272,12 +271,12 @@ export default function AdminStoreDetailScreen() {
                       textAlign: 'right',
                     }}
                   >
-                    {store.latitude.toFixed(6)}, {store.longitude.toFixed(6)}
+                    {(store.latitude && typeof store.latitude === 'number' ? store.latitude.toFixed(6) : 'N/A')}, {(store.longitude && typeof store.longitude === 'number' ? store.longitude.toFixed(6) : 'N/A')}
                   </Text>
                   <Ionicons name="navigate" size={16} color={theme.colors.primary} />
                 </View>
               </TouchableOpacity>
-            )}
+           
             
             <DetailRow
               label="Created"
