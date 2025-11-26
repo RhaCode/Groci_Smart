@@ -4,7 +4,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
@@ -87,8 +86,8 @@ export default function PriceComparisonScreen() {
     );
   }
 
-  // Check if there are no items with prices or if the API returns a message
-  if (comparison.message || !comparison.items || comparison.items.length === 0) {
+  // Only show empty state when there are NO items to compare
+  if (!comparison.items || comparison.items.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
@@ -122,7 +121,7 @@ export default function PriceComparisonScreen() {
     );
   }
 
-  // Sort stores by total price - check if store_totals exists
+  // Sort stores by total price
   const sortedStores = comparison.store_totals 
     ? Object.entries(comparison.store_totals)
         .map(([store, total]) => ({ store, total }))
@@ -142,10 +141,10 @@ export default function PriceComparisonScreen() {
           />
         }
       >
-        {/* Summary Card */}
+        {/* Summary Card with Analysis */}
         <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <View style={{ alignItems: 'center', marginBottom: 16 }}>
-            <Text style={{ color: theme.colors['text-secondary'], marginBottom: 8 }}>Shopping at</Text>
+          <View style={{ alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ color: theme.colors['text-secondary'], marginBottom: 8 }}>Best Single Store</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ 
                 backgroundColor: `${theme.colors.success}20`, 
@@ -173,42 +172,108 @@ export default function PriceComparisonScreen() {
             </View>
           </View>
 
-          {comparison.potential_savings && parseFloat(comparison.potential_savings as any) > 0 && (
+          {/* Analysis Message */}
+          {comparison.message && (
+            <View style={{ 
+              backgroundColor: `${theme.colors.primary}10`, 
+              borderWidth: 1, 
+              borderColor: `${theme.colors.primary}30`, 
+              borderRadius: 8, 
+              padding: 12,
+              marginBottom: 12
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                <Ionicons name="analytics" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
+                <Text style={{ 
+                  flex: 1, 
+                  color: theme.colors.primary, 
+                  fontSize: 14, 
+                  marginLeft: 8,
+                  fontWeight: '500'
+                }}>
+                  {comparison.message}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Savings Information */}
+          {comparison.potential_savings > 0 && (
             <View style={{ 
               backgroundColor: `${theme.colors.success}10`, 
               borderWidth: 1, 
               borderColor: `${theme.colors.success}30`, 
               borderRadius: 8, 
-              padding: 16 
+              padding: 12 
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="cash-outline" size={24} color={theme.colors.success} />
-                  <View style={{ marginLeft: 12 }}>
+                  <Ionicons name="cash-outline" size={20} color={theme.colors.success} />
+                  <View style={{ marginLeft: 8 }}>
                     <Text style={{ 
                       color: theme.colors.success, 
-                      fontWeight: '600' 
+                      fontWeight: '600',
+                      fontSize: 14
                     }}>
-                      Potential Savings
+                      Multi-Store Savings
                     </Text>
                     <Text style={{ 
                       color: theme.colors.success, 
-                      fontSize: 14 
+                      fontSize: 12 
                     }}>
-                      vs. most expensive store
+                      Buy each item at its cheapest store
                     </Text>
                   </View>
                 </View>
-                <Text style={{ 
-                  fontSize: 24, 
-                  fontWeight: 'bold', 
-                  color: theme.colors.success 
-                }}>
-                  {formatAmount(comparison.potential_savings)}
-                </Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ 
+                    fontSize: 18, 
+                    fontWeight: 'bold', 
+                    color: theme.colors.success 
+                  }}>
+                    {formatAmount(comparison.potential_savings)}
+                  </Text>
+                  <Text style={{ 
+                    fontSize: 12, 
+                    color: theme.colors.success 
+                  }}>
+                    vs {comparison.best_store}
+                  </Text>
+                </View>
               </View>
             </View>
           )}
+
+          {/* Quick Stats */}
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-around', 
+            marginTop: 12,
+            paddingTop: 12,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border
+          }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors['text-primary'] }}>
+                {comparison.items?.length || 0}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>Items</Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors['text-primary'] }}>
+                {Object.keys(comparison.store_totals || {}).length}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>Stores</Text>
+            </View>
+            {comparison.items_with_price_variations !== undefined && (
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors['text-primary'] }}>
+                  {comparison.items_with_price_variations}
+                </Text>
+                <Text style={{ fontSize: 12, color: theme.colors['text-secondary'] }}>Price Variations</Text>
+              </View>
+            )}
+          </View>
         </Card>
 
         {/* Store Comparison */}

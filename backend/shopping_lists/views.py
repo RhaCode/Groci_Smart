@@ -338,7 +338,7 @@ def generate_list_from_receipt(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def compare_list_prices(request, list_id):
-    """Compare shopping list prices across stores"""
+    """Compare shopping list prices across stores with better analysis"""
     shopping_list = get_object_or_404(ShoppingList, id=list_id, user=request.user)
     
     # Get all items with linked products
@@ -351,9 +351,14 @@ def compare_list_prices(request, list_id):
             'list_name': shopping_list.name
         })
     
-    # Store totals
+    # Store totals for single-store shopping
     store_totals = {}
     items_comparison = []
+    
+    # For analysis
+    items_with_multiple_stores = 0
+    optimal_total = 0
+    single_store_totals = {}
     
     for item in items:
         product = item.product
@@ -362,7 +367,8 @@ def compare_list_prices(request, list_id):
         # Get current prices for this product
         prices = PriceHistory.objects.filter(
             product=product,
-            is_active=True
+            is_active=True,
+            is_approved=True
         ).select_related('store')
         
         if not prices.exists():
@@ -385,15 +391,24 @@ def compare_list_prices(request, list_id):
                 'total_price': total_price
             })
             
-            # Track store totals
-            if store_name not in store_totals:
-                store_totals[store_name] = 0
-            store_totals[store_name] += total_price
+            # Track store totals for single-store shopping
+            if store_name not in single_store_totals:
+                single_store_totals[store_name] = 0
+            single_store_totals[store_name] += total_price
             
             # Track best price for this item
             if best_price is None or unit_price < best_price:
                 best_price = unit_price
                 best_store_name = store_name
+        
+        # Check if this item has price variations across stores
+        if len(prices) > 1:
+            prices_list = [float(price.price) for price in prices]
+            if max(prices_list) != min(prices_list):
+                items_with_multiple_stores += 1
+        
+        # Add to optimal total (buying each item at its best price)
+        optimal_total += best_price * quantity
         
         items_comparison.append({
             'item_id': item.id,
@@ -404,25 +419,51 @@ def compare_list_prices(request, list_id):
             'best_store': best_store_name
         })
     
-    # Find best overall store
-    best_store = min(store_totals, key=store_totals.get) if store_totals else None
-    worst_store = max(store_totals, key=store_totals.get) if store_totals else None
+    # Find best single store
+    best_single_store = min(single_store_totals, key=single_store_totals.get) if single_store_totals else None
+    best_single_store_total = single_store_totals.get(best_single_store, 0) if best_single_store else 0
     
-    potential_savings = 0
-    if best_store and worst_store:
-        potential_savings = store_totals[worst_store] - store_totals[best_store]
+    # Calculate potential savings from multi-store shopping
+    potential_savings = best_single_store_total - optimal_total if best_single_store else 0
+    
+    # Generate appropriate message based on the situation
+    message = generate_comparison_message(
+        items_with_multiple_stores, 
+        potential_savings, 
+        len(single_store_totals),
+        best_single_store
+    )
     
     response_data = {
         'list_id': shopping_list.id,
         'list_name': shopping_list.name,
         'items': items_comparison,
-        'store_totals': {k: round(v, 2) for k, v in store_totals.items()},
-        'best_store': best_store,
-        'potential_savings': round(potential_savings, 2)
+        'store_totals': {k: round(v, 2) for k, v in single_store_totals.items()},
+        'best_store': best_single_store,  # Keep for backward compatibility
+        'potential_savings': round(potential_savings, 2),
+        'optimal_total': round(optimal_total, 2),
+        'best_single_store_total': round(best_single_store_total, 2),
+        'items_with_price_variations': items_with_multiple_stores,
+        'message': message
     }
     
     return Response(response_data)
 
+def generate_comparison_message(items_with_variations, savings, store_count, best_store):
+    """Generate appropriate message based on the price comparison results"""
+    if store_count == 0:
+        return "No store price data available"
+    
+    if store_count == 1:
+        return f"All items available at {best_store}. No store choice needed."
+    
+    if items_with_variations == 0:
+        return f"All stores have similar pricing for your items. Choose based on convenience."
+    
+    if savings > 0:
+        return f"Save ${savings:.2f} by shopping at multiple stores for the best prices"
+    else:
+        return f"{best_store} has the best overall prices for all your items"
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])

@@ -73,7 +73,10 @@ export interface PriceComparison {
   items: PriceComparisonItem[];
   store_totals: Record<string, number>;
   best_store: string;
-  potential_savings: string;
+  potential_savings: number;
+  optimal_total?: number;
+  best_single_store_total?: number;
+  items_with_price_variations?: number;
   message?: string;
 }
 
@@ -84,6 +87,15 @@ export interface PriceComparisonItem {
   stores: StorePrice[];
   best_price: number;
   best_store: string;
+  worst_price: number;
+  worst_store: string;
+}
+
+export interface ShoppingStrategyItem {
+  product_name: string;
+  quantity: number;
+  price: number;
+  total: number;
 }
 
 export interface StorePrice {
